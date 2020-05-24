@@ -15,15 +15,19 @@ FBX exporter add-on for Blender compatible with Unity's coordinate system and sc
 
 ## How to use
 
-File > Export > Unity FBX (.fbx)
+**File > Export > Unity FBX (.fbx)**
 
 Exports all Empty, Mesh and Armature objects in the current scene except those in disabled collections. The full hierarchy is properly preserved and exported, including local positions and rotations.
 
-<img align="center" src="/img/blender-to-unity-fbx-exporter-menu.png" alt="Blender To Unity FBX Exporter Menu">
+<p align="center">
+<img src="/img/blender-to-unity-fbx-exporter-menu.png" alt="Blender To Unity FBX Exporter Menu">
+</p>
 
 The File Browser exposes an option to export the active collection only.
 
-<img align="center" src="/img/blender-to-unity-fbx-exporter-options.png" alt="Blender To Unity FBX Exporter Options">
+<p align="center">
+<img src="/img/blender-to-unity-fbx-exporter-options.png" alt="Blender To Unity FBX Exporter Options">
+</p>
 
 ## Notes
 
