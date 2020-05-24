@@ -5,8 +5,8 @@ FBX exporter add-on for Blender compatible with Unity's coordinate system and sc
 
 ## How to install
 
-1. Clone the repository or download the file `blender-to-unity-fbx-exporter.py` to your device.
-2. In Blender go to Edit > Preferences > Add-ons, then use the Install… button and use the File Browser to select the file `blender-to-unity-fbx-exporter.py`.
+1. Clone the repository or download the add-on file [`blender-to-unity-fbx-exporter.py`](/blender-to-unity-fbx-exporter.py) to your device.
+2. In Blender go to Edit > Preferences > Add-ons, then use the Install… button and use the File Browser to select the add-on file.
 3. Enable the add-on by checking the enable checkbox.
 
 ## How to use
@@ -30,6 +30,6 @@ When Unity imports the FBX file the different coordinate system results in the o
 
 ## About the author
 
-Angel "Edy" Garcia
-@VehiclePhysics
+Angel "Edy" Garcia<br>
+[@VehiclePhysics](https://twitter.com/VehiclePhysics)<br>
 https://vehiclephysics.com
