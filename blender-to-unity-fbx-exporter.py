@@ -4,7 +4,7 @@ bl_info = {
 	"version": (1, 0),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
-	"description": "FBX exporter compatible with Unity's coordinate system and scaling.",
+	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
 	"warning": "",
 	"wiki_url": "",
 	"category": "Import-Export",
@@ -121,7 +121,7 @@ from bpy.types import Operator
 
 
 class ExportUnityFbx(Operator, ExportHelper):
-	"""FBX exporter compatible with Unity's coordinate system and scaling"""
+	"""FBX exporter compatible with Unity's coordinate and scaling system"""
 	bl_idname = "export_scene.unity_fbx"
 	bl_label = "Export Unity FBX"
 
