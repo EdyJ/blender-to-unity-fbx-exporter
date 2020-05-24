@@ -1,7 +1,7 @@
 
 # Blender To Unity FBX Exporter
 
-FBX exporter add-on for Blender compatible with Unity's coordinate system and scaling.
+FBX exporter add-on for Blender 2.80+ compatible with Unity's coordinate system and scaling.
 
 ## How to install
 
@@ -31,8 +31,8 @@ The File Browser exposes an option to export the active collection only.
 
 ## Notes
 
-- Not yet tested with armatures nor animations.
-- No option to export selected objects only. This is intentional. The nature of the fix might cause unexpected results if a child is selected without its parent.
+- Not tested with armatures nor animations.
+- No option to export selected objects only. This is intentional. The nature of the fix for Unity might cause unexpected results if a child object is selected without its parent. Use Collections for defining the objects to be exported.
 
 ## How it works
 
