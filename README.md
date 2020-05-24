@@ -19,7 +19,7 @@ The File Browser exposes an option to export the active collection only.
 
 ## Notes
 
-- Not yet tested with armatures and animations.
+- Not yet tested with armatures nor animations.
 - No option to export selected objects only. This is intentional. The nature of the fix might cause unexpected results if a child is selected without its parent.
 
 ## How it works
