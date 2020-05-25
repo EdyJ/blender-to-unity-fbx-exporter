@@ -1,7 +1,7 @@
 
 # Blender To Unity FBX Exporter
 
-FBX exporter add-on for Blender 2.80+ compatible with Unity's coordinate and scaling system. The FBX files are imported in Unity with correct rotations and scales.
+FBX exporter add-on for Blender 2.80+ compatible with Unity's coordinate and scaling system. Exported FBX files are imported into Unity with the correct rotations and scales.
 
 ## How to install
 
@@ -36,7 +36,7 @@ The File Browser exposes an option to export the active collection only.
 
 ## How it works
 
-In Blender every object to be exported receives a rotation of +90 degrees around the X axis in their transform _without_ actually modifying the visual pose of its geometry and children. This is done in the root objects first, then recursively propagated to their children (as they inhering a -90 rotation after transforming their parent). The scene is then exported to FBX using Blender's built-in FBX exported with the proper options applied. Finally the scene is restored to the point prior to applying the modifications.
+Before exporting the file every object in the Blender scene receives a rotation of +90 degrees around the X axis in their transform _without_ actually modifying the visual pose of its geometry and children. This is done in the root objects first, then recursively propagated to their children (as they inhering a -90 rotation after transforming their parent). The scene is then exported to FBX using Blender's built-in FBX exported with the proper options applied. Finally the scene is restored to the state before the modifications.
 
 When Unity imports the FBX file the different coordinate system results in the objects including a rotation of -90 degrees applied in the X axis. As the objects in the FBX already have a rotation of X+90, then the unwanted rotation is canceled and everything gets imported correctly.
 
