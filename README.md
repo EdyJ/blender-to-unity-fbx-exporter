@@ -29,16 +29,18 @@ The File Browser exposes an option to export the active collection only.
 <img src="/img/blender-to-unity-fbx-exporter-options.png" alt="Blender To Unity FBX Exporter Options">
 </p>
 
+## How it works
+
+The exporter modifies the objects in the Blender scene right before exporting the FBX file, then reverts the modifications afterwards. 
+
+Every object to be exported receives a rotation of +90 degrees around the X axis in their transform _without_ actually modifying the visual pose of its geometry and children. This is done in the root objects, then recursively propagated to their children (as they inherit a -90 rotation after transforming their parent). The modified scene is then exported to FBX using Blender's built-in FBX exporter with the proper options applied. Finally the scene is restored to the state before the modifications.
+
+When Unity imports the FBX file all objects receive a rotation of -90 degrees in the X axis to preserve their visual pose. As the objects in the FBX already have a rotation of X+90, then the undesired rotation is canceled and everything gets imported correctly.
+
 ## Notes
 
 - Not tested with armatures nor animations.
-- No option to export selected objects only. This is intentional. The nature of the fix for Unity might cause unexpected results if a child object is selected without its parent. Use Collections for defining the objects to be exported.
-
-## How it works
-
-Before exporting the file every object in the Blender scene receives a rotation of +90 degrees around the X axis in their transform _without_ actually modifying the visual pose of its geometry and children. This is done in the root objects first, then recursively propagated to their children (as they inherit a -90 rotation after transforming their parent). The scene is then exported to FBX using Blender's built-in FBX exporter with the proper options applied. Finally the scene is restored to the state before the modifications.
-
-When Unity imports the FBX file the different coordinate system results in the objects receiving a rotation of -90 degrees applied in the X axis. As the objects in the FBX already have a rotation of X+90, then the unwanted rotation is canceled and everything gets imported correctly.
+- No option to export selected objects only. This is intentional. The nature of the solution might cause unexpected results if a child object is selected without its parent. Use Collections for defining the objects to be exported.
 
 ## About the author
 
