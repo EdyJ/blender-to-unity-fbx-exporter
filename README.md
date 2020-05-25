@@ -36,9 +36,9 @@ The File Browser exposes an option to export the active collection only.
 
 ## How it works
 
-Before exporting the file every object in the Blender scene receives a rotation of +90 degrees around the X axis in their transform _without_ actually modifying the visual pose of its geometry and children. This is done in the root objects first, then recursively propagated to their children (as they inhering a -90 rotation after transforming their parent). The scene is then exported to FBX using Blender's built-in FBX exported with the proper options applied. Finally the scene is restored to the state before the modifications.
+Before exporting the file every object in the Blender scene receives a rotation of +90 degrees around the X axis in their transform _without_ actually modifying the visual pose of its geometry and children. This is done in the root objects first, then recursively propagated to their children (as they inherit a -90 rotation after transforming their parent). The scene is then exported to FBX using Blender's built-in FBX exporter with the proper options applied. Finally the scene is restored to the state before the modifications.
 
-When Unity imports the FBX file the different coordinate system results in the objects including a rotation of -90 degrees applied in the X axis. As the objects in the FBX already have a rotation of X+90, then the unwanted rotation is canceled and everything gets imported correctly.
+When Unity imports the FBX file the different coordinate system results in the objects receiving a rotation of -90 degrees applied in the X axis. As the objects in the FBX already have a rotation of X+90, then the unwanted rotation is canceled and everything gets imported correctly.
 
 ## About the author
 
