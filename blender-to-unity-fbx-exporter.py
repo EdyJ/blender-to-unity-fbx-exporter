@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel ""Edy"" Garcia (@VehiclePhysics)",
-	"version": (1, 0),
+	"version": (1, 1),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -25,8 +25,31 @@ def reset_parent_inverse(ob):
 
 # Multi-user mesh data is stored here. Unique copies are made for applying the rotation.
 # Data for these meshes will be restored after all objects have been processed, so the original shared mesh has also been processed.
-
 mesh_data = dict()
+
+# Collections that are enabled in this view layer but hidden in the viewport.
+# Must be visible for apply_rotation to have effect. Will be restored afterwards.
+hidden_collections = []
+
+
+def unhide_collections(col):
+	global hidden_collections
+
+	# No need to unhide excluded collections
+	if col.exclude:
+		return
+
+	# Find hidden child collections and unhide them
+	hidden = [item for item in col.children if not item.exclude and item.hide_viewport]
+	for item in hidden:
+		item.hide_viewport = False
+
+	# Add them to the list so they could be restored later
+	hidden_collections.extend(hidden)
+
+	# Recursively unhide child collections
+	for item in col.children:
+		unhide_collections(item)
 
 
 def apply_rotation(ob):
@@ -69,13 +92,14 @@ def fix_object(ob):
 	# https://blender.stackexchange.com/questions/36647/python-low-level-apply-rotation-to-an-object
 	ob.matrix_local = mat_local @ mathutils.Matrix.Rotation(math.radians(90.0), 4, 'X')
 
-	# Recursively fix the child objects, as they inherit an X-90 rotation
+	# Recursively fix child objects, as they inherit an X-90 rotation
 	for child in ob.children:
 		fix_object(child)
 
 
 def export_unity_fbx(context, filepath, active_collection):
 	global mesh_data
+	global hidden_collections
 
 	print("Preparing 3D model for Unity...")
 
@@ -85,6 +109,10 @@ def export_unity_fbx(context, filepath, active_collection):
 	# Preserve current scene
 	bpy.ops.ed.undo_push()
 	mesh_data = dict()
+	hidden_collections = []
+
+	# Ensure all enabled collections are visible. Required for apply_rotation.
+	unhide_collections(bpy.context.view_layer.layer_collection)
 
 	try:
 		# Fix rotations
@@ -95,6 +123,10 @@ def export_unity_fbx(context, filepath, active_collection):
 		# Restore multi-user meshes
 		for item in mesh_data:
 			bpy.data.objects[item].data = mesh_data[item]
+
+		# Restore hidden collections
+		for col in hidden_collections:
+			col.hide_viewport = True
 
 		# Export FBX file
 		bpy.ops.export_scene.fbx(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection)
