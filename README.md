@@ -37,10 +37,11 @@ Every object to be exported receives a rotation of +90 degrees around the X axis
 
 When Unity imports the FBX file all objects receive a rotation of -90 degrees in the X axis to preserve their visual pose. As the objects in the FBX already have a rotation of X+90, then the undesired rotation is canceled and everything gets imported correctly.
 
-## Notes
+## Known issues
 
-- Not tested with armatures nor animations.
-- No option to export selected objects only. This is intentional. The nature of the solution might cause unexpected results if a child object is selected without its parent. Use Collections for defining the objects to be exported.
+- Not tested with armatures nor animations. Feel free to send me a repro scene if you encounter any problem.
+- Doesn't work properly with objects in collections that are simultaneously enabled and hidden. There's no proper API available to handle this case automatically ([reference](https://devtalk.blender.org/t/what-object-property-does-bpy-ops-object-hide-view-set-actually-toggle/4517/7)). Workaround: Ensure the visibility of your collections is enabled ("Eye" icon in the outliner).
+- No option to export selected objects only. This is intentional. Results will be unexpected if a child object is selected without its parent. Use Collections for defining the objects to be exported.
 
 ## About the author
 
