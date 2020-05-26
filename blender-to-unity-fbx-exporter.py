@@ -74,25 +74,25 @@ def apply_rotation(ob):
 
 
 def fix_object(ob):
-	# Only objects in current view layer
-	if ob.name not in bpy.context.view_layer.objects:
-		return
+	# Only fix objects in current view layer
+	if ob.name in bpy.context.view_layer.objects:
+		
+		# Reset parent's inverse so we can work with local transform directly
+		reset_parent_inverse(ob)
 
-	# Reset parent's inverse so we can work with local transform directly
-	reset_parent_inverse(ob)
+		# Create a copy of the local matrix and set a pure X-90 matrix
+		mat_local = ob.matrix_local.copy()
+		ob.matrix_local = mathutils.Matrix.Rotation(math.radians(-90.0), 4, 'X')
 
-	# Create a copy of the local matrix and set a pure X-90 matrix
-	mat_local = ob.matrix_local.copy()
-	ob.matrix_local = mathutils.Matrix.Rotation(math.radians(-90.0), 4, 'X')
+		# Apply the rotation to the object
+		apply_rotation(ob)
 
-	# Apply the rotation to the object
-	apply_rotation(ob)
+		# Reapply the previous local transform with an X+90 rotation
+		# https://blender.stackexchange.com/questions/36647/python-low-level-apply-rotation-to-an-object
+		ob.matrix_local = mat_local @ mathutils.Matrix.Rotation(math.radians(90.0), 4, 'X')
 
-	# Reapply the previous local transform with an X+90 rotation
-	# https://blender.stackexchange.com/questions/36647/python-low-level-apply-rotation-to-an-object
-	ob.matrix_local = mat_local @ mathutils.Matrix.Rotation(math.radians(90.0), 4, 'X')
-
-	# Recursively fix child objects, as they inherit an X-90 rotation
+	# Recursively fix child objects in current view layer.
+	# Children may be in the current view layer even if their parent isn't.
 	for child in ob.children:
 		fix_object(child)
 
@@ -103,8 +103,8 @@ def export_unity_fbx(context, filepath, active_collection):
 
 	print("Preparing 3D model for Unity...")
 
-	# Root objects: Empty or Mesh without parent and in current view layer
-	root_objects = [item for item in bpy.data.objects if ((item.type == "EMPTY" or item.type == "MESH") and not item.parent and item.name in bpy.context.view_layer.objects)]
+	# Root objects: Empty or Mesh without parent
+	root_objects = [item for item in bpy.data.objects if (item.type == "EMPTY" or item.type == "MESH") and not item.parent]
 
 	# Preserve current scene
 	bpy.ops.ed.undo_push()
