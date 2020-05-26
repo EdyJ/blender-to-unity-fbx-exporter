@@ -35,12 +35,21 @@ The exporter modifies the objects in the Blender scene right before exporting th
 
 Every object to be exported receives a rotation of +90 degrees around the X axis in their transform _without_ actually modifying the visual pose of its geometry and children. This is done in the root objects, then recursively propagated to their children (as they inherit a -90 rotation after transforming their parent). The modified scene is then exported to FBX using Blender's built-in FBX exporter with the proper options applied. Finally the scene is restored to the state before the modifications.
 
-When Unity imports the FBX file all objects receive a rotation of -90 degrees in the X axis to preserve their visual pose. As the objects in the FBX already have a rotation of X+90, then the undesired rotation is canceled and everything gets imported correctly.
+When Unity imports the FBX file all objects receive a rotation of -90 degrees in the X axis to preserve their visual pose. As the objects in the FBX already have a rotation of X+90 then the undesired rotation is canceled and everything gets imported correctly.
 
 ## Notes
 
 - Not tested with armatures nor animations. Feel free to open an issue with a simple repro scene if you encounter any problem.
-- No option to export selected objects only. This is intentional. Results will be unexpected if a child object is selected without its parent. Use Collections for defining the objects to be exported.
+- No option to export selected objects only. This is intentional. Results will be unexpected if a child object is selected without its parent. Use Collections to define the objects to be exported.
+
+#### Tested:
+
+- Mixed EMPTY and MESH hierarchies with depth > 3
+- Multi-user meshes
+- Hidden objects
+- Hidden collections
+- Disabled collections (won't be exported)
+- Nested collections
 
 ## About the author
 
