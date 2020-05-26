@@ -133,7 +133,8 @@ def export_unity_fbx(context, filepath, active_collection):
 
 	except Exception as e:
 		bpy.ops.ed.undo()
-		print("Errors raised! File not saved.")
+		print(e)
+		print("File not saved.")
 		return {'CANCELLED'}
 
 	# Restore scene and finish
