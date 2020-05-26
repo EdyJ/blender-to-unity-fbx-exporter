@@ -143,16 +143,6 @@ class ExportUnityFbx(Operator, ExportHelper):
 		default=False,
 	)
 
-	#type: EnumProperty(
-	#    name="Example Enum",
-	#    description="Choose between two items",
-	#    items=(
-	#        ('OPT_A', "First Option", "Description one"),
-	#        ('OPT_B', "Second Option", "Description two"),
-	#    ),
-	#    default='OPT_A',
-	#)
-
 	def execute(self, context):
 		return export_unity_fbx(context, self.filepath, self.active_collection)
 
