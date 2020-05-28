@@ -31,7 +31,7 @@ The File Browser exposes an option to export the active collection only.
 
 ## How it works
 
-The exporter modifies the objects in the Blender scene right before exporting the FBX file, then reverts the modifications afterwards. 
+The exporter modifies the objects in the Blender scene right before exporting the FBX file, then reverts the modifications afterwards.
 
 Every object to be exported receives a rotation of +90 degrees around the X axis in their transform _without_ actually modifying the visual pose of its geometry and children. This is done in the root objects, then recursively propagated to their children (as they inherit a -90 rotation after transforming their parent). The modified scene is then exported to FBX using Blender's built-in FBX exporter with the proper options applied. Finally the scene is restored to the state before the modifications.
 
@@ -41,7 +41,7 @@ When Unity imports the FBX file all objects receive a rotation of -90 degrees in
 
 - Not tested with armatures nor animations. Feel free to open an issue with a simple repro scene if you encounter any problem.
 - No option to export selected objects only (yet).
-- Negative scales are imported with an unexpected but equivalent transform. Example: scale (-1, 1, 1) is imported as scale (-1, -1, -1) and rotation (-180, 0, 0). This is equivalent, and may be changed to, the original scale (-1, 1, 1) and rotation (0, 0, 0) in Unity.
+- Negative scales are imported with an unexpected but equivalent transform. Example: scale (-1, 1, 1) and no rotation is imported as scale (-1, -1, -1) and rotation (-180, 0, 0). This is equivalent, and may be changed to, the original scale (-1, 1, 1) and rotation (0, 0, 0) in Unity.
 
 #### Tested:
 
@@ -49,9 +49,10 @@ When Unity imports the FBX file all objects receive a rotation of -90 degrees in
 - Local rotations
 - Non-uniform scaling
 - Multi-user meshes
-- Hidden objects
-- Hidden collections
-- Disabled collections (won't be exported)
+- Hidden objects and collections (eye icon in the outliner).
+- Disabled objects (monitor icon in the outliner). Imported with MeshRenderer disabled in Unity.
+- Disabled collections (monitor icon in the outliner).
+- Excluded collections (unchecked in the outliner). Won't be exported.
 - Nested collections
 - Objects with parent in disabled collection
 
