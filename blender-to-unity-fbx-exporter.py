@@ -23,19 +23,24 @@ def reset_parent_inverse(ob):
 		ob.matrix_basis = ob.parent.matrix_world.inverted() @ mat_world
 
 
-# Multi-user mesh data is stored here. Unique copies are made for applying the rotation.
-# Data for these meshes will be restored after all objects have been processed, so the original shared mesh has also been processed.
+# Multi-user mesh data is preserved here. Unique copies are made for applying the rotation.
+# Eventually multi-user meshes become single-user and gets processed.
+# Therefore restoring the multi-user data assigns a shared but already processed mesh.
 mesh_data = dict()
 
-# Collections that are enabled in this view layer but hidden in the viewport.
-# Must be visible for apply_rotation to have effect. Will be restored afterwards.
+# All objects and collections in this view layer must be visible while being processed.
+# apply_rotation and matrix changes don't have effect otherwise.
+# Visibility will be restored right before saving the FBX.
 hidden_collections = []
+
+hidden_objects = []
+disabled_objects = []
 
 
 def unhide_collections(col):
 	global hidden_collections
 
-	# No need to unhide excluded collections
+	# No need to unhide excluded collections. Their objects aren't included in current view layer.
 	if col.exclude:
 		return
 
@@ -52,6 +57,21 @@ def unhide_collections(col):
 		unhide_collections(item)
 
 
+def unhide_objects():
+	global hidden_objects
+	global disabled_object
+
+	view_layer_objects = [ob for ob in bpy.data.objects if ob.name in bpy.context.view_layer.objects]
+
+	for ob in view_layer_objects:
+		if ob.hide_get():
+			hidden_objects.append(ob)
+			ob.hide_set(False)
+		if ob.hide_viewport:
+			disabled_objects.append(ob)
+			ob.hide_viewport = False
+
+
 def apply_rotation(ob):
 	global mesh_data
 
@@ -60,36 +80,28 @@ def apply_rotation(ob):
 		mesh_data[ob.name] = ob.data
 		ob.data = ob.data.copy()
 
-	# If the object is hidden, unhide it temporarly
-	is_hidden = ob.hide_get()
-	ob.hide_set(False)
-
 	# Apply rotation
 	bpy.ops.object.select_all(action='DESELECT')
 	ob.select_set(True)
 	bpy.ops.object.transform_apply(rotation = True)
 
-	# Restore original visibility
-	ob.hide_set(is_hidden)
-
 
 def fix_object(ob):
 	# Only fix objects in current view layer
 	if ob.name in bpy.context.view_layer.objects:
-		
+
 		# Reset parent's inverse so we can work with local transform directly
 		reset_parent_inverse(ob)
 
 		# Create a copy of the local matrix and set a pure X-90 matrix
-		mat_local = ob.matrix_local.copy()
+		mat_original = ob.matrix_local.copy()
 		ob.matrix_local = mathutils.Matrix.Rotation(math.radians(-90.0), 4, 'X')
 
 		# Apply the rotation to the object
 		apply_rotation(ob)
 
 		# Reapply the previous local transform with an X+90 rotation
-		# https://blender.stackexchange.com/questions/36647/python-low-level-apply-rotation-to-an-object
-		ob.matrix_local = mat_local @ mathutils.Matrix.Rotation(math.radians(90.0), 4, 'X')
+		ob.matrix_local = mat_original @ mathutils.Matrix.Rotation(math.radians(90.0), 4, 'X')
 
 	# Recursively fix child objects in current view layer.
 	# Children may be in the current view layer even if their parent isn't.
@@ -100,6 +112,8 @@ def fix_object(ob):
 def export_unity_fbx(context, filepath, active_collection):
 	global mesh_data
 	global hidden_collections
+	global hidden_objects
+	global disabled_objects
 
 	print("Preparing 3D model for Unity...")
 
@@ -110,9 +124,12 @@ def export_unity_fbx(context, filepath, active_collection):
 	bpy.ops.ed.undo_push()
 	mesh_data = dict()
 	hidden_collections = []
+	hidden_objects = []
+	disabled_objects = []
 
-	# Ensure all enabled collections are visible. Required for apply_rotation.
+	# Ensure all the collections and objects in this view layer are visible
 	unhide_collections(bpy.context.view_layer.layer_collection)
+	unhide_objects()
 
 	try:
 		# Fix rotations
@@ -123,6 +140,15 @@ def export_unity_fbx(context, filepath, active_collection):
 		# Restore multi-user meshes
 		for item in mesh_data:
 			bpy.data.objects[item].data = mesh_data[item]
+
+		# Recompute the transforms out of the changed matrices
+		bpy.context.view_layer.update()
+
+		# Restore hidden and disabled objects
+		for ob in hidden_objects:
+			ob.hide_set(True)
+		for ob in disabled_objects:
+			ob.hide_viewport = True
 
 		# Restore hidden collections
 		for col in hidden_collections:
