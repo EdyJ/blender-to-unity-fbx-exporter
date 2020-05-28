@@ -40,7 +40,6 @@ When Unity imports the FBX file all objects receive a rotation of -90 degrees in
 ## Notes
 
 - Not tested with armatures nor animations. Feel free to open an issue with a simple repro scene if you encounter any problem.
-- No option to export selected objects only (yet).
 - Negative scales are imported with an unexpected but equivalent transform. Example: scale (-1, 1, 1) and no rotation is imported as scale (-1, -1, -1) and rotation (-180, 0, 0). This is equivalent, and may be changed to, the original scale (-1, 1, 1) and rotation (0, 0, 0) in Unity.
 
 #### Tested:
@@ -49,6 +48,7 @@ When Unity imports the FBX file all objects receive a rotation of -90 degrees in
 - Local rotations
 - Non-uniform scaling
 - Multi-user meshes
+- Partial selections (Selected Objects Only)
 - Hidden objects and collections (eye icon in the outliner).
 - Disabled objects (monitor icon in the outliner). Imported with MeshRenderer disabled in Unity.
 - Disabled collections (monitor icon in the outliner).

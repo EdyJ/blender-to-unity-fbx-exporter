@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel ""Edy"" Garcia (@VehiclePhysics)",
-	"version": (1, 1),
+	"version": (1, 2),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -117,7 +117,7 @@ def fix_object(ob):
 		fix_object(child)
 
 
-def export_unity_fbx(context, filepath, active_collection):
+def export_unity_fbx(context, filepath, active_collection, selected_objects):
 	global mesh_data
 	global hidden_collections
 	global hidden_objects
@@ -136,6 +136,8 @@ def export_unity_fbx(context, filepath, active_collection):
 	hidden_objects = []
 	disabled_collections = []
 	disabled_objects = []
+	
+	selection = bpy.context.selected_objects
 
 	# Ensure all the collections and objects in this view layer are visible
 	unhide_collections(bpy.context.view_layer.layer_collection)
@@ -166,8 +168,13 @@ def export_unity_fbx(context, filepath, active_collection):
 		for col in disabled_collections:
 			col.collection.hide_viewport = True
 
+		# Restore selection
+		bpy.ops.object.select_all(action='DESELECT')
+		for ob in selection:
+			ob.select_set(True)
+		
 		# Export FBX file
-		bpy.ops.export_scene.fbx(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection)
+		bpy.ops.export_scene.fbx(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects)
 
 	except Exception as e:
 		bpy.ops.ed.undo()
@@ -213,9 +220,15 @@ class ExportUnityFbx(Operator, ExportHelper):
 		description="Export only objects from the active collection (and its children)",
 		default=False,
 	)
+	
+	selected_objects: BoolProperty(
+		name="Selected Objects Only",
+		description="Export only selected objects. Only from current collection if the other option is also checked.",
+		default=False,
+	)	
 
 	def execute(self, context):
-		return export_unity_fbx(context, self.filepath, self.active_collection)
+		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects)
 
 
 # Only needed if you want to add into a dynamic menu
