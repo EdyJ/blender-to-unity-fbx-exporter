@@ -16,13 +16,6 @@ import mathutils
 import math
 
 
-def reset_parent_inverse(ob):
-	if (ob.parent):
-		mat_world = ob.matrix_world.copy()
-		ob.matrix_parent_inverse.identity()
-		ob.matrix_basis = ob.parent.matrix_world.inverted() @ mat_world
-
-
 # Multi-user mesh data is preserved here. Unique copies are made for applying the rotation.
 # Eventually multi-user meshes become single-user and gets processed.
 # Therefore restoring the multi-user data assigns a shared but already processed mesh.
@@ -32,13 +25,14 @@ mesh_data = dict()
 # apply_rotation and matrix changes don't have effect otherwise.
 # Visibility will be restored right before saving the FBX.
 hidden_collections = []
-
 hidden_objects = []
+disabled_collections = []
 disabled_objects = []
 
 
 def unhide_collections(col):
 	global hidden_collections
+	global disabled_collections
 
 	# No need to unhide excluded collections. Their objects aren't included in current view layer.
 	if col.exclude:
@@ -52,6 +46,13 @@ def unhide_collections(col):
 	# Add them to the list so they could be restored later
 	hidden_collections.extend(hidden)
 
+	# Same with the disabled collections
+	disabled = [item for item in col.children if not item.exclude and item.collection.hide_viewport]
+	for item in disabled:
+		item.collection.hide_viewport = False
+
+	disabled_collections.extend(disabled)
+
 	# Recursively unhide child collections
 	for item in col.children:
 		unhide_collections(item)
@@ -59,7 +60,7 @@ def unhide_collections(col):
 
 def unhide_objects():
 	global hidden_objects
-	global disabled_object
+	global disabled_objects
 
 	view_layer_objects = [ob for ob in bpy.data.objects if ob.name in bpy.context.view_layer.objects]
 
@@ -70,6 +71,13 @@ def unhide_objects():
 		if ob.hide_viewport:
 			disabled_objects.append(ob)
 			ob.hide_viewport = False
+
+
+def reset_parent_inverse(ob):
+	if (ob.parent):
+		mat_world = ob.matrix_world.copy()
+		ob.matrix_parent_inverse.identity()
+		ob.matrix_basis = ob.parent.matrix_world.inverted() @ mat_world
 
 
 def apply_rotation(ob):
@@ -113,6 +121,7 @@ def export_unity_fbx(context, filepath, active_collection):
 	global mesh_data
 	global hidden_collections
 	global hidden_objects
+	global disabled_collections
 	global disabled_objects
 
 	print("Preparing 3D model for Unity...")
@@ -125,6 +134,7 @@ def export_unity_fbx(context, filepath, active_collection):
 	mesh_data = dict()
 	hidden_collections = []
 	hidden_objects = []
+	disabled_collections = []
 	disabled_objects = []
 
 	# Ensure all the collections and objects in this view layer are visible
@@ -150,9 +160,11 @@ def export_unity_fbx(context, filepath, active_collection):
 		for ob in disabled_objects:
 			ob.hide_viewport = True
 
-		# Restore hidden collections
+		# Restore hidden and disabled collections
 		for col in hidden_collections:
 			col.hide_viewport = True
+		for col in disabled_collections:
+			col.collection.hide_viewport = True
 
 		# Export FBX file
 		bpy.ops.export_scene.fbx(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection)
