@@ -23,7 +23,7 @@ Exports all Empty, Mesh and Armature objects in the current scene except those i
 <img src="/img/blender-to-unity-fbx-exporter-menu.png" alt="Blender To Unity FBX Exporter Menu">
 </p>
 
-The File Browser exposes an option to export the active collection only.
+The File Browser exposes optionos to export the active collection only and/or the selected objects only. If both options are checked then only the selected objects in the active collection will be exported.
 
 <p align="center">
 <img src="/img/blender-to-unity-fbx-exporter-options.png" alt="Blender To Unity FBX Exporter Options">
