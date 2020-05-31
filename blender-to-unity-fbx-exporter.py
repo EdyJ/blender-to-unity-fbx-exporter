@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel ""Edy"" Garcia (@VehiclePhysics)",
-	"version": (1, 2),
+	"version": (1, 2, 1),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -16,10 +16,10 @@ import mathutils
 import math
 
 
-# Multi-user mesh data is preserved here. Unique copies are made for applying the rotation.
-# Eventually multi-user meshes become single-user and gets processed.
-# Therefore restoring the multi-user data assigns a shared but already processed mesh.
-mesh_data = dict()
+# Multi-user datablocks are preserved here. Unique copies are made for applying the rotation.
+# Eventually multi-user datablocks become single-user and gets processed.
+# Therefore restoring the multi-user data assigns a shared but already processed datablock.
+shared_data = dict()
 
 # All objects and collections in this view layer must be visible while being processed.
 # apply_rotation and matrix changes don't have effect otherwise.
@@ -73,6 +73,26 @@ def unhide_objects():
 			ob.hide_viewport = False
 
 
+def make_single_user_data():
+	global shared_data
+
+	for ob in bpy.data.objects:
+		if ob.data and ob.data.users > 1:
+			if ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
+				# Figure out the objects that use this datablock
+				users = [user for user in bpy.data.objects if user.data == ob.data]
+
+				# Shared data will be restored if users have no active modifiers
+				modifiers = 0
+				for user in users:
+					modifiers += len([mod for mod in user.modifiers if mod.show_viewport])
+				if modifiers == 0:
+					shared_data[ob.name] = ob.data
+
+			# Make single-user copy
+			ob.data = ob.data.copy()
+
+
 def reset_parent_inverse(ob):
 	if (ob.parent):
 		mat_world = ob.matrix_world.copy()
@@ -81,17 +101,9 @@ def reset_parent_inverse(ob):
 
 
 def apply_rotation(ob):
-	global mesh_data
-
-	# Create a single copy in multi-user meshes. Will be restored later.
-	if (ob.type == "MESH" and ob.data.users > 1):
-		mesh_data[ob.name] = ob.data
-		ob.data = ob.data.copy()
-
-	# Apply rotation
 	bpy.ops.object.select_all(action='DESELECT')
 	ob.select_set(True)
-	bpy.ops.object.transform_apply(rotation = True)
+	bpy.ops.object.transform_apply(location = False, rotation = True, scale = False)
 
 
 def fix_object(ob):
@@ -118,7 +130,7 @@ def fix_object(ob):
 
 
 def export_unity_fbx(context, filepath, active_collection, selected_objects):
-	global mesh_data
+	global shared_data
 	global hidden_collections
 	global hidden_objects
 	global disabled_collections
@@ -131,17 +143,27 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects):
 
 	# Preserve current scene
 	bpy.ops.ed.undo_push()
-	mesh_data = dict()
+	shared_data = dict()
 	hidden_collections = []
 	hidden_objects = []
 	disabled_collections = []
 	disabled_objects = []
-	
+
 	selection = bpy.context.selected_objects
+
+	# Object mode
+	bpy.ops.object.mode_set(mode = "OBJECT")
 
 	# Ensure all the collections and objects in this view layer are visible
 	unhide_collections(bpy.context.view_layer.layer_collection)
 	unhide_objects()
+
+	# Create a single copy in multi-user datablocks. Will be restored after fixing rotations.
+	make_single_user_data()
+
+	# Convert all objects to meshes
+	bpy.ops.object.select_all(action='SELECT')
+	bpy.ops.object.convert(target='MESH')
 
 	try:
 		# Fix rotations
@@ -150,8 +172,8 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects):
 			fix_object(ob)
 
 		# Restore multi-user meshes
-		for item in mesh_data:
-			bpy.data.objects[item].data = mesh_data[item]
+		for item in shared_data:
+			bpy.data.objects[item].data = shared_data[item]
 
 		# Recompute the transforms out of the changed matrices
 		bpy.context.view_layer.update()
@@ -172,7 +194,7 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects):
 		bpy.ops.object.select_all(action='DESELECT')
 		for ob in selection:
 			ob.select_set(True)
-		
+
 		# Export FBX file
 		bpy.ops.export_scene.fbx(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects)
 
@@ -220,12 +242,12 @@ class ExportUnityFbx(Operator, ExportHelper):
 		description="Export only objects from the active collection (and its children)",
 		default=False,
 	)
-	
+
 	selected_objects: BoolProperty(
 		name="Selected Objects Only",
 		description="Export only selected objects. Only from current collection if the other option is also checked.",
 		default=False,
-	)	
+	)
 
 	def execute(self, context):
 		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects)

@@ -47,7 +47,7 @@ When Unity imports the FBX file all objects receive a rotation of -90 degrees in
 - Mixed EMPTY and MESH hierarchies with depth > 3
 - Local rotations
 - Non-uniform scaling
-- Multi-user meshes
+- Multi-user meshes, with and without modifiers
 - Partial selections (Selected Objects Only)
 - Hidden objects and collections (eye icon in the outliner).
 - Disabled objects (monitor icon in the outliner). Imported with MeshRenderer disabled in Unity.
@@ -55,6 +55,7 @@ When Unity imports the FBX file all objects receive a rotation of -90 degrees in
 - Excluded collections (unchecked in the outliner). Won't be exported.
 - Nested collections
 - Objects with parent in disabled collection
+- Mesh modifiers
 
 ## About the author
 
