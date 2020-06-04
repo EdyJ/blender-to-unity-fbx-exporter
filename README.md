@@ -17,7 +17,7 @@ FBX exporter add-on for Blender 2.80+ compatible with Unity's coordinate and sca
 
 **File > Export > Unity FBX (.fbx)**
 
-Exports all Empty, Mesh and Armature objects in the current scene except those in disabled collections. The full hierarchy is properly preserved and exported, including local positions and rotations.
+Exports all Empty, Mesh and Armature objects in the current scene except those in excluded collections. The full hierarchy is properly preserved and exported, including local positions and rotations.
 
 <p align="center">
 <img src="/img/blender-to-unity-fbx-exporter-menu.png" alt="Blender To Unity FBX Exporter Menu">
@@ -37,6 +37,10 @@ Every object to be exported receives a rotation of +90 degrees around the X axis
 
 When Unity imports the FBX file all objects receive a rotation of -90 degrees in the X axis to preserve their visual pose. As the objects in the FBX already have a rotation of X+90 then the undesired rotation is canceled and everything gets imported correctly.
 
+#### Why not using the "Experimental - Apply Transform" option?
+
+This option doesn't work with object hierarchies of more than 2 levels. Objects beyond the 2nd level keep receiving unwanted rotations and scalings when imported into Unity.
+
 ## Notes
 
 - Not tested with armatures nor animations. Feel free to open an issue with a simple repro scene if you encounter any problem.
@@ -54,7 +58,7 @@ When Unity imports the FBX file all objects receive a rotation of -90 degrees in
 - Disabled collections (monitor icon in the outliner).
 - Excluded collections (unchecked in the outliner). Won't be exported.
 - Nested collections
-- Objects with parent in disabled collection
+- Objects with their parent in a disabled/excluded collection
 - Mesh modifiers
 
 ## About the author
