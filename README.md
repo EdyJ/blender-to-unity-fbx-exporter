@@ -37,7 +37,7 @@ Every object to be exported receives a rotation of +90 degrees around the X axis
 
 When Unity imports the FBX file all objects receive a rotation of -90 degrees in the X axis to preserve their visual pose. As the objects in the FBX already have a rotation of X+90 then the undesired rotation is canceled and everything gets imported correctly.
 
-#### Why not using the "Experimental - Apply Transform" option?
+#### Why not use the "Experimental - Apply Transform" option?
 
 This option doesn't work with object hierarchies of more than 2 levels. Objects beyond the 2nd level keep receiving unwanted rotations and scalings when imported into Unity.
 
