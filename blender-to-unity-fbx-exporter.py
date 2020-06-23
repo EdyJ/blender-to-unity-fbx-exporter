@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel ""Edy"" Garcia (@VehiclePhysics)",
-	"version": (1, 2, 1),
+	"version": (1, 2, 2),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -138,8 +138,8 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects):
 
 	print("Preparing 3D model for Unity...")
 
-	# Root objects: Empty or Mesh without parent
-	root_objects = [item for item in bpy.data.objects if (item.type == "EMPTY" or item.type == "MESH") and not item.parent]
+	# Root objects: Empty, Mesh or Armature without parent
+	root_objects = [item for item in bpy.data.objects if (item.type == "EMPTY" or item.type == "MESH" or item.type == "ARMATURE") and not item.parent]
 
 	# Preserve current scene
 	bpy.ops.ed.undo_push()
