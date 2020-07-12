@@ -41,6 +41,13 @@ When Unity imports the FBX file all objects receive a rotation of -90 degrees in
 
 This option doesn't work with object hierarchies of more than 2 levels. Objects beyond the 2nd level keep receiving unwanted rotations and scalings when imported into Unity.
 
+#### Why not simply using the .blend files in the Unity project?
+
+Requires Blender to be installed in the system, so:
+
+- it's a no-go for publishing packages in the Asset Store.
+- .blend files don't work in Unity Cloud Build.
+
 ## Notes
 
 - Not tested with armatures nor animations. Feel free to open an issue with a simple repro scene if you encounter any problem.
