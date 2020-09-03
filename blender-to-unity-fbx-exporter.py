@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel ""Edy"" Garcia (@VehiclePhysics)",
-	"version": (1, 2, 2),
+	"version": (1, 2, 3),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -142,7 +142,12 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects):
 	root_objects = [item for item in bpy.data.objects if (item.type == "EMPTY" or item.type == "MESH" or item.type == "ARMATURE") and not item.parent]
 
 	# Preserve current scene
-	bpy.ops.ed.undo_push()
+	# undo_push examples, including exporters' execute:
+	# https://programtalk.com/python-examples/bpy.ops.ed.undo_push  (Examples 4, 5 and 6)
+	# https://sourcecodequery.com/example-method/bpy.ops.ed.undo  (Examples 1 and 2)
+
+	bpy.ops.ed.undo_push(message="Prepare Unity FBX")
+
 	shared_data = dict()
 	hidden_collections = []
 	hidden_objects = []
@@ -152,7 +157,7 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects):
 	selection = bpy.context.selected_objects
 
 	# Object mode
-	bpy.ops.object.mode_set(mode = "OBJECT")
+	bpy.ops.object.mode_set(mode="OBJECT")
 
 	# Ensure all the collections and objects in this view layer are visible
 	unhide_collections(bpy.context.view_layer.layer_collection)
@@ -199,13 +204,19 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects):
 		bpy.ops.export_scene.fbx(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects)
 
 	except Exception as e:
+		bpy.ops.ed.undo_push(message="")
 		bpy.ops.ed.undo()
+		bpy.ops.ed.undo_push(message="Export Unity FBX")
 		print(e)
 		print("File not saved.")
-		return {'CANCELLED'}
+		# Always finish with 'FINISHED' so Undo is handled properly
+		return {'FINISHED'}
 
 	# Restore scene and finish
+
+	bpy.ops.ed.undo_push(message="")
 	bpy.ops.ed.undo()
+	bpy.ops.ed.undo_push(message="Export Unity FBX")
 	print("FBX file for Unity saved.")
 	return {'FINISHED'}
 
@@ -224,6 +235,7 @@ class ExportUnityFbx(Operator, ExportHelper):
 	"""FBX exporter compatible with Unity's coordinate and scaling system"""
 	bl_idname = "export_scene.unity_fbx"
 	bl_label = "Export Unity FBX"
+	bl_options = {'UNDO_GROUPED'}
 
 	# ExportHelper mixin class uses this
 	filename_ext = ".fbx"
