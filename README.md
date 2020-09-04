@@ -37,36 +37,36 @@ Every object to be exported receives a rotation of +90 degrees around the X axis
 
 When Unity imports the FBX file all objects receive a rotation of -90 degrees in the X axis to preserve their visual pose. As the objects in the FBX already have a rotation of X+90 then the undesired rotation is canceled and everything gets imported correctly.
 
-#### Why not use the "Experimental - Apply Transform" option?
+#### Why not use the "Experimental - Apply Transform" option of the default FBX Exporter?
 
 This option doesn't work with object hierarchies of more than 2 levels. Objects beyond the 2nd level keep receiving unwanted rotations and scalings when imported into Unity.
 
-#### Why not simply using the .blend files in the Unity project?
+#### Why not import the .blend file directly in the Unity project?
 
 Requires Blender to be installed in the system, so:
 
 - it's a no-go for publishing packages in the Asset Store.
-- .blend files don't work in Unity Cloud Build.
+- .blend files don't work with Unity Cloud Build.
 
-## Notes
+## Known issues
 
-- Not tested with armatures nor animations. Feel free to open an issue with a simple repro scene if you encounter any problem.
-- Negative scales are imported with an unexpected but equivalent transform. Example: scale (-1, 1, 1) and no rotation is imported as scale (-1, -1, -1) and rotation (-180, 0, 0). This is equivalent, and may be changed to, the original scale (-1, 1, 1) and rotation (0, 0, 0) in Unity.
+- Negative scaling is imported with a different but equivalent transform in Unity. Example: scale (-1, 1, 1) and no rotation is imported as scale (-1, -1, -1) and rotation (-180, 0, 0). In Unity this is equivalent, and may be changed to, the original scale (-1, 1, 1) and rotation (0, 0, 0).
+- Child objects in instanced collections receive an unneeded 90 degrees rotation in the X axis. Clearing this rotation in Unity gives the expected result. (#3)
 
-#### Tested:
+#### Tested and working:
 
-- Mixed EMPTY and MESH hierarchies with depth > 3
-- Local rotations
-- Non-uniform scaling
-- Multi-user meshes, with and without modifiers
-- Partial selections (Selected Objects Only)
+- Mixed EMPTY and MESH hierarchies with depth > 3.
+- Local rotations are preserved.
+- Non-uniform scaling.
+- Mesh modifiers.
+- Multi-user meshes and linked objects, with and without modifiers.
+- Partial selections (Selected Objects Only).
 - Hidden objects and collections (eye icon in the outliner).
 - Disabled objects (monitor icon in the outliner). Imported with MeshRenderer disabled in Unity.
 - Disabled collections (monitor icon in the outliner).
 - Excluded collections (unchecked in the outliner). Won't be exported.
-- Nested collections
-- Objects with their parent in a disabled/excluded collection
-- Mesh modifiers
+- Nested collections.
+- Objects with their parent in a disabled/excluded collection.
 
 ## About the author
 
