@@ -1,6 +1,6 @@
 bl_info = {
 	"name": "Unity FBX format",
-	"author": "Angel ""Edy"" Garcia (@VehiclePhysics)",
+	"author": "Angel 'Edy' Garcia (@VehiclePhysics)",
 	"version": (1, 2, 3),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
