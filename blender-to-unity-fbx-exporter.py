@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel 'Edy' Garcia (@VehiclePhysics)",
-	"version": (1, 2, 3),
+	"version": (1, 3, 0),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -129,7 +129,7 @@ def fix_object(ob):
 		fix_object(child)
 
 
-def export_unity_fbx(context, filepath, active_collection, selected_objects):
+def export_unity_fbx(context, filepath, active_collection, selected_objects, embed_textures):
 	global shared_data
 	global hidden_collections
 	global hidden_objects
@@ -201,7 +201,16 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects):
 			ob.select_set(True)
 
 		# Export FBX file
-		bpy.ops.export_scene.fbx(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects)
+
+		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects)
+
+		if embed_textures:
+			params['embed_textures'] = True
+			params['path_mode'] = 'COPY'
+
+		print("Invoking default FBX Exporter", params)
+
+		bpy.ops.export_scene.fbx(**params)
 
 	except Exception as e:
 		bpy.ops.ed.undo_push(message="")
@@ -261,8 +270,14 @@ class ExportUnityFbx(Operator, ExportHelper):
 		default=False,
 	)
 
+	embed_textures: BoolProperty(
+		name="Embed Textures",
+		description="Embed the model's textures into the FBX file.",
+		default=False,
+	)
+
 	def execute(self, context):
-		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects)
+		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.embed_textures)
 
 
 # Only needed if you want to add into a dynamic menu
