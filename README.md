@@ -51,7 +51,7 @@ Requires Blender to be installed in the system, so:
 ## Known issues
 
 - Negative scaling is imported with a different but equivalent transform in Unity. Example: scale (-1, 1, 1) and no rotation is imported as scale (-1, -1, -1) and rotation (-180, 0, 0). In Unity this is equivalent, and may be changed to, the original scale (-1, 1, 1) and rotation (0, 0, 0).
-- Child objects in instanced collections receive an unneeded 90 degrees rotation in the X axis. Clearing this rotation in Unity gives the expected result. (#3)
+- Child objects in instanced collections receive an unneeded 90 degrees rotation in the X axis. Clearing this rotation in Unity gives the expected result. ([#3](https://github.com/EdyJ/blender-to-unity-fbx-exporter/issues/3))
 
 #### Tested and working:
 
