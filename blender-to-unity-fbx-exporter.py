@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel 'Edy' Garcia (@VehiclePhysics)",
-	"version": (1, 2, 3),
+	"version": (1, 3, 0),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -129,7 +129,7 @@ def fix_object(ob):
 		fix_object(child)
 
 
-def export_unity_fbx(context, filepath, active_collection, selected_objects):
+def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones):
 	global shared_data
 	global hidden_collections
 	global hidden_objects
@@ -201,7 +201,11 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects):
 			ob.select_set(True)
 
 		# Export FBX file
-		bpy.ops.export_scene.fbx(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects)
+
+		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects, use_armature_deform_only=deform_bones, add_leaf_bones=leaf_bones)
+
+		print("Invoking default FBX Exporter:", params)
+		bpy.ops.export_scene.fbx(**params)
 
 	except Exception as e:
 		bpy.ops.ed.undo_push(message="")
@@ -251,18 +255,30 @@ class ExportUnityFbx(Operator, ExportHelper):
 
 	active_collection: BoolProperty(
 		name="Active Collection Only",
-		description="Export only objects from the active collection (and its children)",
+		description="Export objects in the active collection only (and its children). May be combined with Selected Objects Only.",
 		default=False,
 	)
 
 	selected_objects: BoolProperty(
 		name="Selected Objects Only",
-		description="Export only selected objects. Only from current collection if the other option is also checked.",
+		description="Export selected objects only. May be combined with Active Collection Only.",
 		default=False,
 	)
 
+	deform_bones: BoolProperty(
+		name="Only Deform Bones",
+		description="Only write deforming bones (and non-deforming ones when they have deforming children)",
+		default=False,
+	)
+
+	leaf_bones: BoolProperty(
+		name="Add Leaf Bones",
+		description="Append a final bone to the end of each chain to specify last bone length (use this when you intend to edit the armature from exported data)",
+		default=True,
+	)
+
 	def execute(self, context):
-		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects)
+		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones)
 
 
 # Only needed if you want to add into a dynamic menu
