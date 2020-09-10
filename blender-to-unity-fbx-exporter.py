@@ -277,6 +277,25 @@ class ExportUnityFbx(Operator, ExportHelper):
 		default=True,
 	)
 
+	# Custom draw method
+	# https://blender.stackexchange.com/questions/55437/add-gui-elements-to-exporter-window
+	# https://docs.blender.org/api/current/bpy.types.UILayout.html
+
+	def draw(self, context):
+		layout = self.layout
+		row = layout.row()
+		row.label(text = "Selection")
+		row = layout.row()
+		row.prop(self, "active_collection")
+		row = layout.row()
+		row.prop(self, "selected_objects")
+		row = layout.row()
+		row.label(text = "Armatures")
+		row = layout.row()
+		row.prop(self, "deform_bones")
+		row = layout.row()
+		row.prop(self, "leaf_bones")
+
 	def execute(self, context):
 		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones)
 
