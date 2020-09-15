@@ -60,6 +60,7 @@ Requires Blender to be installed in the system, so:
 - Non-uniform scaling.
 - Mesh modifiers.
 - Multi-user meshes and linked objects, with and without modifiers.
+- Armatures and Armature modifier.
 - Partial selections (Selected Objects Only).
 - Hidden objects and collections (eye icon in the outliner).
 - Disabled objects (monitor icon in the outliner). Imported with MeshRenderer disabled in Unity.

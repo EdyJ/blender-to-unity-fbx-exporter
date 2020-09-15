@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel 'Edy' Garcia (@VehiclePhysics)",
-	"version": (1, 3, 0),
+	"version": (1, 3, 1),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -93,6 +93,23 @@ def make_single_user_data():
 			ob.data = ob.data.copy()
 
 
+def apply_object_modifiers():
+	# Select objects in current view layer not using an armature modifier
+	bpy.ops.object.select_all(action='DESELECT')
+	for ob in bpy.data.objects:
+		if ob.name in bpy.context.view_layer.objects:
+			bypass_modifiers = False
+			for mod in ob.modifiers:
+				if mod.type == 'ARMATURE':
+					bypass_modifiers = True
+			if not bypass_modifiers:
+				ob.select_set(True)
+
+	# Conversion to mesh may not be available depending on the remaining objects
+	if bpy.ops.object.convert.poll():
+		bpy.ops.object.convert(target='MESH')
+
+
 def reset_parent_inverse(ob):
 	if (ob.parent):
 		mat_world = ob.matrix_world.copy()
@@ -166,9 +183,8 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 	# Create a single copy in multi-user datablocks. Will be restored after fixing rotations.
 	make_single_user_data()
 
-	# Convert all objects to meshes
-	bpy.ops.object.select_all(action='SELECT')
-	bpy.ops.object.convert(target='MESH')
+	# Apply modifiers to objects (except those affected by an armature)
+	apply_object_modifiers()
 
 	try:
 		# Fix rotations
@@ -274,7 +290,7 @@ class ExportUnityFbx(Operator, ExportHelper):
 	leaf_bones: BoolProperty(
 		name="Add Leaf Bones",
 		description="Append a final bone to the end of each chain to specify last bone length (use this when you intend to edit the armature from exported data)",
-		default=True,
+		default=False,
 	)
 
 	# Custom draw method
