@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel 'Edy' Garcia (@VehiclePhysics)",
-	"version": (1, 3, 0),
+	"version": (1, 3, 1),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -290,7 +290,7 @@ class ExportUnityFbx(Operator, ExportHelper):
 	leaf_bones: BoolProperty(
 		name="Add Leaf Bones",
 		description="Append a final bone to the end of each chain to specify last bone length (use this when you intend to edit the armature from exported data)",
-		default=True,
+		default=False,
 	)
 
 	# Custom draw method
