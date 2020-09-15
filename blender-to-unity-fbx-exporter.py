@@ -94,13 +94,18 @@ def make_single_user_data():
 
 
 def apply_object_modifiers():
-	# Select objects not affected by an armature
+	# Select objects in current view layer not using an armature modifier
 	bpy.ops.object.select_all(action='DESELECT')
-	non_armature_objects = [ob for ob in bpy.data.objects if ob.find_armature() == None]
-	for ob in non_armature_objects:
-		ob.select_set(True)
+	for ob in bpy.data.objects:
+		if ob.name in bpy.context.view_layer.objects:
+			bypass_modifiers = False
+			for mod in ob.modifiers:
+				if mod.type == 'ARMATURE':
+					bypass_modifiers = True
+			if not bypass_modifiers:
+				ob.select_set(True)
 
-	# Conversion to mesh is not available when all remaining objects are armatures
+	# Conversion to mesh may not be available depending on the remaining objects
 	if bpy.ops.object.convert.poll():
 		bpy.ops.object.convert(target='MESH')
 
