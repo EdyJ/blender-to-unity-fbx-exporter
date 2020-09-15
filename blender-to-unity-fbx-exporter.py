@@ -93,6 +93,18 @@ def make_single_user_data():
 			ob.data = ob.data.copy()
 
 
+def apply_object_modifiers():
+	# Select objects not affected by an armature
+	bpy.ops.object.select_all(action='DESELECT')
+	non_armature_objects = [ob for ob in bpy.data.objects if ob.find_armature() == None]
+	for ob in non_armature_objects:
+		ob.select_set(True)
+
+	# Conversion to mesh is not available when all remaining objects are armatures
+	if bpy.ops.object.convert.poll():
+		bpy.ops.object.convert(target='MESH')
+
+
 def reset_parent_inverse(ob):
 	if (ob.parent):
 		mat_world = ob.matrix_world.copy()
@@ -166,9 +178,8 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 	# Create a single copy in multi-user datablocks. Will be restored after fixing rotations.
 	make_single_user_data()
 
-	# Convert all objects to meshes
-	bpy.ops.object.select_all(action='SELECT')
-	bpy.ops.object.convert(target='MESH')
+	# Apply modifiers to objects (except those affected by an armature)
+	apply_object_modifiers()
 
 	try:
 		# Fix rotations
