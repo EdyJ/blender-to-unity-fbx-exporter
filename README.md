@@ -5,7 +5,7 @@ FBX exporter add-on for Blender 2.80+ compatible with Unity's coordinate and sca
 
 ## How to install
 
-1. Clone the repository or download the add-on file [`blender-to-unity-fbx-exporter.py`](/blender-to-unity-fbx-exporter.py) to your device.
+1. Clone the repository or download the add-on file [`blender-to-unity-fbx-exporter.py`](https://raw.githubusercontent.com/EdyJ/blender-to-unity-fbx-exporter/master/blender-to-unity-fbx-exporter.py) to your device.
 2. In Blender go to Edit > Preferences > Add-ons, then use the Install… button and use the File Browser to select the add-on file.
 3. Enable the add-on by checking the enable checkbox.
 
