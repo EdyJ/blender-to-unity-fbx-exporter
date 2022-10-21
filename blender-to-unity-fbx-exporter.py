@@ -146,7 +146,7 @@ def fix_object(ob):
 		fix_object(child)
 
 
-def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones):
+def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis):
 	global shared_data
 	global hidden_collections
 	global hidden_objects
@@ -218,7 +218,7 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 
 		# Export FBX file
 
-		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects, use_armature_deform_only=deform_bones, add_leaf_bones=leaf_bones)
+		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects, use_armature_deform_only=deform_bones, add_leaf_bones=leaf_bones, primary_bone_axis=primary_bone_axis, secondary_bone_axis=secondary_bone_axis)
 
 		print("Invoking default FBX Exporter:", params)
 		bpy.ops.export_scene.fbx(**params)
@@ -293,6 +293,28 @@ class ExportUnityFbx(Operator, ExportHelper):
 		default=False,
 	)
 
+	primary_bone_axis: EnumProperty(
+			name="Primary Bone Axis",
+			items=(('X', "X Axis", ""),
+					('Y', "Y Axis", ""),
+					('Z', "Z Axis", ""),
+					('-X', "-X Axis", ""),
+					('-Y', "-Y Axis", ""),
+					('-Z', "-Z Axis", ""),
+					),
+			default='Y',
+			)
+	secondary_bone_axis: EnumProperty(
+			name="Secondary Bone Axis",
+			items=(('X', "X Axis", ""),
+					('Y', "Y Axis", ""),
+					('Z', "Z Axis", ""),
+					('-X', "-X Axis", ""),
+					('-Y', "-Y Axis", ""),
+					('-Z', "-Z Axis", ""),
+					),
+			default='X',
+			)
 	# Custom draw method
 	# https://blender.stackexchange.com/questions/55437/add-gui-elements-to-exporter-window
 	# https://docs.blender.org/api/current/bpy.types.UILayout.html
@@ -311,9 +333,16 @@ class ExportUnityFbx(Operator, ExportHelper):
 		row.prop(self, "deform_bones")
 		row = layout.row()
 		row.prop(self, "leaf_bones")
+		row = layout.row()
+		row.label(text = "Bone Axes")
+		row = layout.row()
+		row.prop(self, "primary_bone_axis")
+		row = layout.row()
+		row.prop(self, "secondary_bone_axis")
+
 
 	def execute(self, context):
-		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones)
+		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis)
 
 
 # Only needed if you want to add into a dynamic menu
