@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel 'Edy' Garcia (@VehiclePhysics)",
-	"version": (1, 3, 1),
+	"version": (1, 3, 2),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -146,7 +146,7 @@ def fix_object(ob):
 		fix_object(child)
 
 
-def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis):
+def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space):
 	global shared_data
 	global hidden_collections
 	global hidden_objects
@@ -219,6 +219,9 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 		# Export FBX file
 
 		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects, use_armature_deform_only=deform_bones, add_leaf_bones=leaf_bones, primary_bone_axis=primary_bone_axis, secondary_bone_axis=secondary_bone_axis)
+
+		if tangent_space:
+			params["use_tspace"] = True
 
 		print("Invoking default FBX Exporter:", params)
 		bpy.ops.export_scene.fbx(**params)
@@ -294,27 +297,35 @@ class ExportUnityFbx(Operator, ExportHelper):
 	)
 
 	primary_bone_axis: EnumProperty(
-			name="Primary Bone Axis",
-			items=(('X', "X Axis", ""),
-					('Y', "Y Axis", ""),
-					('Z', "Z Axis", ""),
-					('-X', "-X Axis", ""),
-					('-Y', "-Y Axis", ""),
-					('-Z', "-Z Axis", ""),
-					),
-			default='Y',
-			)
+		name="Primary Bone Axis",
+		items=(('X', "X Axis", ""),
+				('Y', "Y Axis", ""),
+				('Z', "Z Axis", ""),
+				('-X', "-X Axis", ""),
+				('-Y', "-Y Axis", ""),
+				('-Z', "-Z Axis", ""),
+		),
+		default='Y',
+	)
+
 	secondary_bone_axis: EnumProperty(
-			name="Secondary Bone Axis",
-			items=(('X', "X Axis", ""),
-					('Y', "Y Axis", ""),
-					('Z', "Z Axis", ""),
-					('-X', "-X Axis", ""),
-					('-Y', "-Y Axis", ""),
-					('-Z', "-Z Axis", ""),
-					),
-			default='X',
-			)
+		name="Secondary Bone Axis",
+		items=(('X', "X Axis", ""),
+				('Y', "Y Axis", ""),
+				('Z', "Z Axis", ""),
+				('-X', "-X Axis", ""),
+				('-Y', "-Y Axis", ""),
+				('-Z', "-Z Axis", ""),
+		),
+		default='X',
+	)
+
+	tangent_space: BoolProperty(
+		name="Tangent Space",
+		description="Add tangent space calculations to exported mesh data",
+		default=True,
+	)
+
 	# Custom draw method
 	# https://blender.stackexchange.com/questions/55437/add-gui-elements-to-exporter-window
 	# https://docs.blender.org/api/current/bpy.types.UILayout.html
@@ -339,10 +350,13 @@ class ExportUnityFbx(Operator, ExportHelper):
 		row.prop(self, "primary_bone_axis")
 		row = layout.row()
 		row.prop(self, "secondary_bone_axis")
-
+		row = layout.row()
+		row.label(text = "Additional")
+		row = layout.row()
+		row.prop(self, "tangent_space")
 
 	def execute(self, context):
-		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis)
+		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space)
 
 
 # Only needed if you want to add into a dynamic menu
