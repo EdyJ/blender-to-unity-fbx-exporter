@@ -107,6 +107,10 @@ def apply_object_modifiers():
 
 	# Conversion to mesh may not be available depending on the remaining objects
 	if bpy.ops.object.convert.poll():
+		# Remove shared data from objects that were converted to mesh since it won't be applicable to meshes
+		for ob in bpy.context.selected_objects:
+			if ob.type != 'MESH' and ob.name in shared_data:
+				shared_data.pop(ob.name)
 		bpy.ops.object.convert(target='MESH')
 
 
