@@ -60,6 +60,7 @@ Requires Blender to be installed in the system, so:
 - Local rotations are preserved.
 - Non-uniform scaling.
 - Mesh modifiers.
+- Animations.
 - Multi-user meshes and linked objects, with and without modifiers.
 - Armatures and Armature modifier.
 - Partial selections (Selected Objects Only).
