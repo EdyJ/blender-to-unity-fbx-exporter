@@ -41,6 +41,10 @@ When Unity imports the FBX file all objects receive a rotation of -90 degrees in
 
 This option doesn't work with object hierarchies of more than 2 levels. Objects beyond the 2nd level keep receiving unwanted rotations and scalings when imported into Unity.
 
+#### Why not use the "Bake Axis Conversion" option in the Unity Import Settings?
+
+Doensn't seem to work properly with Blender-generated FBX.
+
 #### Why not import the .blend file directly in the Unity project?
 
 Requires Blender to be installed in the system, so:
