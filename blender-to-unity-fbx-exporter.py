@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel 'Edy' Garcia (@VehiclePhysics)",
-	"version": (1, 3, 1),
+	"version": (1, 4, 0),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -78,18 +78,21 @@ def make_single_user_data():
 
 	for ob in bpy.data.objects:
 		if ob.data and ob.data.users > 1:
-			if ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
-				# Figure out the objects that use this datablock
+			# Store shared mesh data in Meshes only.
+			# Other shared datablocks (CURVE, FONT, etc) are always exported as separate meshes
+			# by the built-in FBX exporter.
+			if ob.type == 'MESH':
+				# Figure out the meshes that use this mesh datablock.
 				users = [user for user in bpy.data.objects if user.data == ob.data]
 
-				# Shared data will be restored if users have no active modifiers
+				# Shared mesh data will be restored if users have no active modifiers
 				modifiers = 0
 				for user in users:
 					modifiers += len([mod for mod in user.modifiers if mod.show_viewport])
 				if modifiers == 0:
 					shared_data[ob.name] = ob.data
 
-			# Make single-user copy
+			# Single-user data is mandatory in all object types, otherwise we can't apply the rotation.
 			ob.data = ob.data.copy()
 
 
@@ -107,6 +110,7 @@ def apply_object_modifiers():
 
 	# Conversion to mesh may not be available depending on the remaining objects
 	if bpy.ops.object.convert.poll():
+		print("Converting to meshes:", bpy.context.selected_objects)
 		bpy.ops.object.convert(target='MESH')
 
 
@@ -155,8 +159,8 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 
 	print("Preparing 3D model for Unity...")
 
-	# Root objects: Empty, Mesh or Armature without parent
-	root_objects = [item for item in bpy.data.objects if (item.type == "EMPTY" or item.type == "MESH" or item.type == "ARMATURE") and not item.parent]
+	# Root objects: Empty, Mesh, Curve, Surface, Font or Armature without parent
+	root_objects = [item for item in bpy.data.objects if (item.type == "EMPTY" or item.type == "MESH" or item.type == "ARMATURE" or item.type == "FONT" or item.type == "CURVE" or item.type == "SURFACE") and not item.parent]
 
 	# Preserve current scene
 	# undo_push examples, including exporters' execute:
@@ -190,7 +194,7 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 	try:
 		# Fix rotations
 		for ob in root_objects:
-			print(ob.name)
+			print(ob.name, ob.type)
 			fix_object(ob)
 
 		# Restore multi-user meshes
