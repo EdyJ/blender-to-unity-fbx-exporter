@@ -159,8 +159,8 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 
 	print("Preparing 3D model for Unity...")
 
-	# Root objects: Empty, Mesh or Armature without parent
-	root_objects = [item for item in bpy.data.objects if (item.type == "EMPTY" or item.type == "MESH" or item.type == "ARMATURE") and not item.parent]
+	# Root objects: Empty, Mesh, Curve, Surface, Font or Armature without parent
+	root_objects = [item for item in bpy.data.objects if (item.type == "EMPTY" or item.type == "MESH" or item.type == "ARMATURE" or item.type == "FONT" or item.type == "CURVE" or item.type == "SURFACE") and not item.parent]
 
 	# Preserve current scene
 	# undo_push examples, including exporters' execute:
