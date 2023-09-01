@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel 'Edy' Garcia (@VehiclePhysics)",
-	"version": (1, 3, 1),
+	"version": (1, 4, 0),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
