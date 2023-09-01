@@ -78,18 +78,21 @@ def make_single_user_data():
 
 	for ob in bpy.data.objects:
 		if ob.data and ob.data.users > 1:
-			if ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
-				# Figure out the objects that use this datablock
+			# Store shared mesh data in Meshes only.
+			# Other shared datablocks (CURVE, FONT, etc) are always exported as separate meshes
+			# by the built-in FBX exporter.
+			if ob.type == 'MESH':
+				# Figure out the meshes that use this mesh datablock.
 				users = [user for user in bpy.data.objects if user.data == ob.data]
 
-				# Shared data will be restored if users have no active modifiers
+				# Shared mesh data will be restored if users have no active modifiers
 				modifiers = 0
 				for user in users:
 					modifiers += len([mod for mod in user.modifiers if mod.show_viewport])
 				if modifiers == 0:
 					shared_data[ob.name] = ob.data
 
-			# Make single-user copy
+			# Single-user data is mandatory in all object types, otherwise we can't apply the rotation.
 			ob.data = ob.data.copy()
 
 
@@ -107,10 +110,7 @@ def apply_object_modifiers():
 
 	# Conversion to mesh may not be available depending on the remaining objects
 	if bpy.ops.object.convert.poll():
-		# Remove shared data from objects that were converted to mesh since it won't be applicable to meshes
-		for ob in bpy.context.selected_objects:
-			if ob.type != 'MESH' and ob.name in shared_data:
-				shared_data.pop(ob.name)
+		print("Converting to meshes:", bpy.context.selected_objects)
 		bpy.ops.object.convert(target='MESH')
 
 
@@ -194,7 +194,7 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 	try:
 		# Fix rotations
 		for ob in root_objects:
-			print(ob.name)
+			print(ob.name, ob.type)
 			fix_object(ob)
 
 		# Restore multi-user meshes
