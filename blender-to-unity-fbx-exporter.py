@@ -178,7 +178,8 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 	selection = bpy.context.selected_objects
 
 	# Object mode
-	bpy.ops.object.mode_set(mode="OBJECT")
+	if bpy.ops.object.mode_set.poll():
+		bpy.ops.object.mode_set(mode="OBJECT")
 
 	# Ensure all the collections and objects in this view layer are visible
 	unhide_collections(bpy.context.view_layer.layer_collection)
