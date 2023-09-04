@@ -150,7 +150,7 @@ def fix_object(ob):
 		fix_object(child)
 
 
-def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space):
+def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space, triangulate_faces):
 	global shared_data
 	global hidden_collections
 	global hidden_objects
@@ -222,11 +222,7 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 			ob.select_set(True)
 
 		# Export FBX file
-
-		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects, use_armature_deform_only=deform_bones, add_leaf_bones=leaf_bones, primary_bone_axis=primary_bone_axis, secondary_bone_axis=secondary_bone_axis)
-
-		if tangent_space:
-			params["use_tspace"] = True
+		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects, use_armature_deform_only=deform_bones, add_leaf_bones=leaf_bones, primary_bone_axis=primary_bone_axis, secondary_bone_axis=secondary_bone_axis, use_tspace=tangent_space, use_triangles=triangulate_faces)
 
 		print("Invoking default FBX Exporter:", params)
 		bpy.ops.export_scene.fbx(**params)
@@ -279,13 +275,13 @@ class ExportUnityFbx(Operator, ExportHelper):
 
 	active_collection: BoolProperty(
 		name="Active Collection Only",
-		description="Export objects in the active collection only (and its children). May be combined with Selected Objects Only.",
+		description="Export objects in the active collection only (and its children). May be combined with Selected Objects Only",
 		default=False,
 	)
 
 	selected_objects: BoolProperty(
 		name="Selected Objects Only",
-		description="Export selected objects only. May be combined with Active Collection Only.",
+		description="Export selected objects only. May be combined with Active Collection Only",
 		default=False,
 	)
 
@@ -302,7 +298,7 @@ class ExportUnityFbx(Operator, ExportHelper):
 	)
 
 	primary_bone_axis: EnumProperty(
-		name="Primary Bone Axis",
+		name="Primary",
 		items=(('X', "X Axis", ""),
 				('Y', "Y Axis", ""),
 				('Z', "Z Axis", ""),
@@ -314,7 +310,7 @@ class ExportUnityFbx(Operator, ExportHelper):
 	)
 
 	secondary_bone_axis: EnumProperty(
-		name="Secondary Bone Axis",
+		name="Secondary",
 		items=(('X', "X Axis", ""),
 				('Y', "Y Axis", ""),
 				('Z', "Z Axis", ""),
@@ -326,9 +322,15 @@ class ExportUnityFbx(Operator, ExportHelper):
 	)
 
 	tangent_space: BoolProperty(
-		name="Tangent Space",
-		description="Add tangent space calculations to exported mesh data",
-		default=True,
+		name="Export tangents",
+		description="Add binormal and tangent vectors, together with normal they form the tangent space (tris/quads only). Meshes with N-gons won't export tangents unless the option Triangulate Faces is enabled",
+		default=False,
+	)
+
+	triangulate_faces: BoolProperty(
+		name="Triangulate Faces",
+		description="Convert all faces to triangles. This is necessary for exporting tangents in meshes with N-gons. Otherwise Unity will show a warning when importing tangents in these meshes",
+		default=False,
 	)
 
 	# Custom draw method
@@ -339,29 +341,36 @@ class ExportUnityFbx(Operator, ExportHelper):
 		layout = self.layout
 		row = layout.row()
 		row.label(text = "Selection")
+
 		row = layout.row()
 		row.prop(self, "active_collection")
 		row = layout.row()
 		row.prop(self, "selected_objects")
 		row = layout.row()
+
+		row.label(text = "Meshes")
+		row = layout.row()
+		row.prop(self, "tangent_space")
+		row = layout.row()
+		row.prop(self, "triangulate_faces")
+		row = layout.row()
+
 		row.label(text = "Armatures")
 		row = layout.row()
 		row.prop(self, "deform_bones")
 		row = layout.row()
 		row.prop(self, "leaf_bones")
 		row = layout.row()
+
 		row.label(text = "Bone Axes")
 		row = layout.row()
 		row.prop(self, "primary_bone_axis")
 		row = layout.row()
 		row.prop(self, "secondary_bone_axis")
 		row = layout.row()
-		row.label(text = "Additional")
-		row = layout.row()
-		row.prop(self, "tangent_space")
 
 	def execute(self, context):
-		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space)
+		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces)
 
 
 # Only needed if you want to add into a dynamic menu
