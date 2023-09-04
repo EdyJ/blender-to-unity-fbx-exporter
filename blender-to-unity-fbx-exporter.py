@@ -339,35 +339,21 @@ class ExportUnityFbx(Operator, ExportHelper):
 
 	def draw(self, context):
 		layout = self.layout
-		row = layout.row()
-		row.label(text = "Selection")
+		layout.row().label(text = "Selection")
+		layout.row().prop(self, "active_collection")
+		layout.row().prop(self, "selected_objects")
 
-		row = layout.row()
-		row.prop(self, "active_collection")
-		row = layout.row()
-		row.prop(self, "selected_objects")
-		row = layout.row()
+		layout.row().label(text = "Meshes")
+		layout.row().prop(self, "tangent_space")
+		layout.row().prop(self, "triangulate_faces")
 
-		row.label(text = "Meshes")
-		row = layout.row()
-		row.prop(self, "tangent_space")
-		row = layout.row()
-		row.prop(self, "triangulate_faces")
-		row = layout.row()
+		layout.row().label(text = "Armatures")
+		layout.row().prop(self, "deform_bones")
+		layout.row().prop(self, "leaf_bones")
 
-		row.label(text = "Armatures")
-		row = layout.row()
-		row.prop(self, "deform_bones")
-		row = layout.row()
-		row.prop(self, "leaf_bones")
-		row = layout.row()
-
-		row.label(text = "Bone Axes")
-		row = layout.row()
-		row.prop(self, "primary_bone_axis")
-		row = layout.row()
-		row.prop(self, "secondary_bone_axis")
-		row = layout.row()
+		layout.row().label(text = "Bone Axes")
+		layout.row().prop(self, "primary_bone_axis")
+		layout.row().prop(self, "secondary_bone_axis")
 
 	def execute(self, context):
 		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces)
