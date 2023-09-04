@@ -343,17 +343,27 @@ class ExportUnityFbx(Operator, ExportHelper):
 		layout.row().prop(self, "active_collection")
 		layout.row().prop(self, "selected_objects")
 
+		layout.separator()
 		layout.row().label(text = "Meshes")
 		layout.row().prop(self, "tangent_space")
 		layout.row().prop(self, "triangulate_faces")
 
+		layout.separator()
 		layout.row().label(text = "Armatures")
 		layout.row().prop(self, "deform_bones")
 		layout.row().prop(self, "leaf_bones")
 
 		layout.row().label(text = "Bone Axes")
-		layout.row().prop(self, "primary_bone_axis")
-		layout.row().prop(self, "secondary_bone_axis")
+		split = layout.split(factor=0.4)
+		col = split.column()
+		col.alignment = 'RIGHT'
+		col.label(text = "Primary")
+		split.column().prop(self, "primary_bone_axis", text="")
+		split = layout.split(factor=0.4)
+		col = split.column()
+		col.alignment = 'RIGHT'
+		col.label(text = "Secondary")
+		split.column().prop(self, "secondary_bone_axis", text="")
 
 	def execute(self, context):
 		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces)
