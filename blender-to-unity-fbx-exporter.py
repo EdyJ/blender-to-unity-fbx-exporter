@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel 'Edy' Garcia (@VehiclePhysics)",
-	"version": (1, 4, 0),
+	"version": (1, 4, 1),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -78,22 +78,22 @@ def make_single_user_data():
 
 	for ob in bpy.data.objects:
 		if ob.data and ob.data.users > 1:
-			# Store shared mesh data in Meshes only.
-			# Other shared datablocks (CURVE, FONT, etc) are always exported as separate meshes
-			# by the built-in FBX exporter.
-			if ob.type == 'MESH':
-				# Figure out the meshes that use this mesh datablock.
-				users = [user for user in bpy.data.objects if user.data == ob.data]
+			# Figure out actual users of this datablock (not counting fake users)
+			users = [user for user in bpy.data.objects if user.data == ob.data]
+			if len(users) > 1:
+				# Store shared mesh data (MESH objects only).
+				# Other shared datablocks (CURVE, FONT, etc) are always exported as separate meshes
+				# by the built-in FBX exporter.
+				if ob.type == 'MESH':
+					# Shared mesh data will be restored if users have no active modifiers
+					modifiers = 0
+					for user in users:
+						modifiers += len([mod for mod in user.modifiers if mod.show_viewport])
+					if modifiers == 0:
+						shared_data[ob.name] = ob.data
 
-				# Shared mesh data will be restored if users have no active modifiers
-				modifiers = 0
-				for user in users:
-					modifiers += len([mod for mod in user.modifiers if mod.show_viewport])
-				if modifiers == 0:
-					shared_data[ob.name] = ob.data
-
-			# Single-user data is mandatory in all object types, otherwise we can't apply the rotation.
-			ob.data = ob.data.copy()
+				# Single-user data is mandatory in all object types, otherwise we can't apply the rotation.
+				ob.data = ob.data.copy()
 
 
 def apply_object_modifiers():
