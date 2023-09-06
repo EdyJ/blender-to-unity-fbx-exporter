@@ -39,11 +39,11 @@ When Unity imports the FBX file all objects receive a rotation of -90 degrees in
 
 #### Why not use the "Experimental - Apply Transform" option of the default FBX Exporter?
 
-This option doesn't work with object hierarchies of more than 2 levels. Objects beyond the 2nd level keep receiving unwanted rotations and scalings when imported into Unity.
+This option doesn't work with object hierarchies of more than 2 levels. Objects beyond the 2nd level keep receiving unwanted rotation and scaling when imported into Unity.
 
 #### Why not use the "Bake Axis Conversion" option in the Unity Import Settings?
 
-Doensn't seem to work properly with Blender-generated FBX.
+Doesn't seem to work properly with Blender-generated FBX.
 
 #### Why not import the .blend file directly in the Unity project?
 
@@ -55,8 +55,7 @@ Requires Blender to be installed in the system, so:
 ## Known issues
 
 - Negative scaling is imported with a different but equivalent transform in Unity. Example: scale (-1, 1, 1) and no rotation is imported as scale (-1, -1, -1) and rotation (-180, 0, 0). In Unity this is equivalent, and may be changed to, the original scale (-1, 1, 1) and rotation (0, 0, 0).
-- Child objects in instanced collections receive an unneeded 90 degrees rotation in the X axis. Clearing this rotation in Unity gives the expected result. ([#3](https://github.com/EdyJ/blender-to-unity-fbx-exporter/issues/3))
-- Exporting right after deleting an object throws an exception. Workaround: select some object before exporting. ([#17](https://github.com/EdyJ/blender-to-unity-fbx-exporter/issues/17))
+- Child objects in instanced collections receive a rotation of 90 degrees in the X axis. Clearing this rotation in Unity gives the expected result. ([#3](https://github.com/EdyJ/blender-to-unity-fbx-exporter/issues/3))
 
 #### Tested and working:
 
