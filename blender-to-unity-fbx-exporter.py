@@ -150,7 +150,7 @@ def fix_object(ob):
 		fix_object(child)
 
 
-def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space, triangulate_faces):
+def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space, triangulate_faces, custom_props):
 	global shared_data
 	global hidden_collections
 	global hidden_objects
@@ -222,7 +222,7 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 			ob.select_set(True)
 
 		# Export FBX file
-		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects, use_armature_deform_only=deform_bones, add_leaf_bones=leaf_bones, primary_bone_axis=primary_bone_axis, secondary_bone_axis=secondary_bone_axis, use_tspace=tangent_space, use_triangles=triangulate_faces)
+		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_custom_props=custom_props, use_active_collection=active_collection, use_selection=selected_objects, use_armature_deform_only=deform_bones, add_leaf_bones=leaf_bones, primary_bone_axis=primary_bone_axis, secondary_bone_axis=secondary_bone_axis, use_tspace=tangent_space, use_triangles=triangulate_faces)
 
 		print("Invoking default FBX Exporter:", params)
 		bpy.ops.export_scene.fbx(**params)
@@ -333,6 +333,12 @@ class ExportUnityFbx(Operator, ExportHelper):
 		default=False,
 	)
 
+	custom_props: BoolProperty(
+		name="Use Custom Properties",
+		description="Export custom properties to be used as UserData from Unity AssetProcessor",
+		default=True,
+	)
+
 	# Custom draw method
 	# https://blender.stackexchange.com/questions/55437/add-gui-elements-to-exporter-window
 	# https://docs.blender.org/api/current/bpy.types.UILayout.html
@@ -365,8 +371,11 @@ class ExportUnityFbx(Operator, ExportHelper):
 		col.label(text = "Secondary")
 		split.column().prop(self, "secondary_bone_axis", text="")
 
+		layout.separator()
+		layout.row().prop(self, "custom_props")
+
 	def execute(self, context):
-		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces)
+		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces, self.custom_props)
 
 
 # Only needed if you want to add into a dynamic menu
