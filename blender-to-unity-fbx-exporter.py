@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
 	"author": "Angel 'Edy' Garcia (@VehiclePhysics)",
-	"version": (1, 4, 1),
+	"version": (1, 4, 2),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -175,8 +175,6 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 	disabled_collections = []
 	disabled_objects = []
 
-	selection = bpy.context.selected_objects
-
 	# Object mode
 	if bpy.ops.object.mode_set.poll():
 		bpy.ops.object.mode_set(mode="OBJECT")
@@ -184,6 +182,9 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 	# Ensure all the collections and objects in this view layer are visible
 	unhide_collections(bpy.context.view_layer.layer_collection)
 	unhide_objects()
+
+	# Capture selected objects here so that any that were hidden are picked up too
+	selection = bpy.context.selected_objects
 
 	# Create a single copy in multi-user datablocks. Will be restored after fixing rotations.
 	make_single_user_data()
