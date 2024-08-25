@@ -1,7 +1,7 @@
 bl_info = {
 	"name": "Unity FBX format",
-	"author": "Angel 'Edy' Garcia (@VehiclePhysics)",
-	"version": (1, 4, 1),
+	"author": "Angel 'Edy' Garcia (@VehiclePhysics) & Tech Skull Studios (@TechSkullStudio)",
+	"version": (1, 4, 2),
 	"blender": (2, 80, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
@@ -15,20 +15,23 @@ import bpy
 import mathutils
 import math
 
-
-# Multi-user datablocks are preserved here. Unique copies are made for applying the rotation.
-# Eventually multi-user datablocks become single-user and gets processed.
-# Therefore restoring the multi-user data assigns a shared but already processed datablock.
+'''
+Multi-user datablocks are preserved here. Unique copies are made for applying the rotation.
+Eventually multi-user datablocks become single-user and gets processed.
+Therefore restoring the multi-user data assigns a shared but already processed datablock.
+'''
 shared_data = dict()
 
-# All objects and collections in this view layer must be visible while being processed.
-# apply_rotation and matrix changes don't have effect otherwise.
-# Visibility will be restored right before saving the FBX.
+'''
+All objects and collections in this view layer must be visible while being processed.
+apply_rotation and matrix changes don't have effect otherwise.
+Visibility will be restored right before saving the FBX.
+'''
 hidden_collections = []
 hidden_objects = []
 disabled_collections = []
 disabled_objects = []
-
+collections = None
 
 def unhide_collections(col):
 	global hidden_collections
@@ -150,23 +153,75 @@ def fix_object(ob):
 		fix_object(child)
 
 
-def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space, triangulate_faces):
+def parentCol(context, _colParent, _objParent):
+    for col in _colParent.children:
+        newObj = bpy.data.objects.new("empty", None)
+        context.scene.collection.objects.link(newObj)
+        newObj.name = col.name
+        newObj.parent = _objParent
+
+        if len(col.objects) > 0:
+            for obj in col.objects:
+                obj.parent = newObj
+
+        parentCol(context, col, newObj)
+
+
+#create hierarchy based on collection structure
+def createHierarchy(context, preserve_hierarchy):
+	global collections
+
+	if preserve_hierarchy:
+		collections = context.scene.collection
+		root = bpy.data.objects.new("Mesh", None)
+		context.scene.collection.objects.link(root)
+
+		#link root objects to root empty
+		if len(collections.objects) > 0:
+			for obj in collections.objects:
+				if(obj is not root):
+					obj.parent = root
+
+		parentCol(context, collections, root)
+
+
+def removeEmpties():
+	print("removing temporary empty transforms")
+	bpy.ops.ed.undo()
+	bpy.ops.ed.undo() #hack to remove the empty objects as setting parent to nil, un-parenting, deleting, un-linking and absolutely nothing else seemed to work
+
+
+def cleanup(preserve_hierarchy):
+	if preserve_hierarchy:
+		removeEmpties()
+
+	bpy.ops.ed.undo_push(message="")
+	bpy.ops.ed.undo()
+	bpy.ops.ed.undo_push(message="Export Unity FBX")
+
+
+def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space, triangulate_faces, preserve_hierarchy):
 	global shared_data
 	global hidden_collections
 	global hidden_objects
 	global disabled_collections
 	global disabled_objects
+	global collections
 
 	print("Preparing 3D model for Unity...")
 
+	createHierarchy(context, preserve_hierarchy)
+	
 	# Root objects: Empty, Mesh, Curve, Surface, Font or Armature without parent
-	root_objects = [item for item in bpy.data.objects if (item.type == "EMPTY" or item.type == "MESH" or item.type == "ARMATURE" or item.type == "FONT" or item.type == "CURVE" or item.type == "SURFACE") and not item.parent]
+	objects = collections.all_objects if preserve_hierarchy else bpy.data.objects 
+	root_objects = [item for item in objects if (item.type == "EMPTY" or item.type == "MESH" or item.type == "ARMATURE" or item.type == "FONT" or item.type == "CURVE" or item.type == "SURFACE") and not item.parent]
 
-	# Preserve current scene
-	# undo_push examples, including exporters' execute:
-	# https://programtalk.com/python-examples/bpy.ops.ed.undo_push  (Examples 4, 5 and 6)
-	# https://sourcecodequery.com/example-method/bpy.ops.ed.undo  (Examples 1 and 2)
-
+	'''
+	Preserve current scene
+	undo_push examples, including exporters' execute:
+	https://programtalk.com/python-examples/bpy.ops.ed.undo_push  (Examples 4, 5 and 6)
+	https://sourcecodequery.com/example-method/bpy.ops.ed.undo  (Examples 1 and 2)
+	'''
 	bpy.ops.ed.undo_push(message="Prepare Unity FBX")
 
 	shared_data = dict()
@@ -228,28 +283,26 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 		bpy.ops.export_scene.fbx(**params)
 
 	except Exception as e:
-		bpy.ops.ed.undo_push(message="")
-		bpy.ops.ed.undo()
-		bpy.ops.ed.undo_push(message="Export Unity FBX")
+		cleanup(preserve_hierarchy)
 		print(e)
 		print("File not saved.")
+
 		# Always finish with 'FINISHED' so Undo is handled properly
 		return {'FINISHED'}
 
 	# Restore scene and finish
-
-	bpy.ops.ed.undo_push(message="")
-	bpy.ops.ed.undo()
-	bpy.ops.ed.undo_push(message="Export Unity FBX")
+	cleanup(preserve_hierarchy)
 	print("FBX file for Unity saved.")
+
 	return {'FINISHED'}
 
+'''
+---------------------------------------------------------------------------------------------------
+Exporter stuff (from the Operator File Export template)
 
-#---------------------------------------------------------------------------------------------------
-# Exporter stuff (from the Operator File Export template)
-
-# ExportHelper is a helper class, defines filename and
-# invoke() function which calls the file selector.
+ExportHelper is a helper class, defines filename and
+invoke() function which calls the file selector.
+'''
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import Operator
@@ -333,10 +386,18 @@ class ExportUnityFbx(Operator, ExportHelper):
 		default=False,
 	)
 
-	# Custom draw method
-	# https://blender.stackexchange.com/questions/55437/add-gui-elements-to-exporter-window
-	# https://docs.blender.org/api/current/bpy.types.UILayout.html
+	preserve_hierarchy: BoolProperty(
+		name="Preserve Collection in Hierarchy",
+		description="When exporting to Unity, Blender's collection hierarchy will be maintained as a GameObject hierarchy in the Unity Editor",
+		default=True,
+	)
+	
 
+	'''
+	Custom draw method
+	https://blender.stackexchange.com/questions/55437/add-gui-elements-to-exporter-window
+	https://docs.blender.org/api/current/bpy.types.UILayout.html
+	'''
 	def draw(self, context):
 		layout = self.layout
 		layout.row().label(text = "Selection")
@@ -365,8 +426,11 @@ class ExportUnityFbx(Operator, ExportHelper):
 		col.label(text = "Secondary")
 		split.column().prop(self, "secondary_bone_axis", text="")
 
+		layout.separator()
+		layout.row().prop(self, "preserve_hierarchy")
+
 	def execute(self, context):
-		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces)
+		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces, self.preserve_hierarchy)
 
 
 # Only needed if you want to add into a dynamic menu

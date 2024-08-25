@@ -29,6 +29,18 @@ The File Browser exposes selection and armature options:
 <img src="/img/blender-to-unity-fbx-exporter-options.png" alt="Blender To Unity FBX Exporter Options">
 </p>
 
+The **Preserve Collection in Hierarchy** option is enabled by default:
+
+<p align="center">
+<img src="/img/blender-to-unity-fbx-exporter-preserve-hierarchy.png" alt="Blender To Unity FBX Exporter Preserve Hierarchy">
+</p>
+
+Leaving this option enabled will export the collection folder structure unique to Blender as a properly formed GameObject hierarchy on Unity's side when importing the FBX model.
+
+<p align="center">
+<img src="/img/blender-to-unity-fbx-exporter-hierarchy-comparison.png" alt="Blender To Unity FBX Exporter Preserve Hierarchy Comparison">
+</p>
+
 ## How it works
 
 The exporter modifies the objects in the Blender scene right before exporting the FBX file, then reverts the modifications afterwards.
@@ -79,3 +91,8 @@ Requires Blender to be installed in the system, so:
 Angel "Edy" Garcia<br>
 [@VehiclePhysics](https://twitter.com/VehiclePhysics)<br>
 https://vehiclephysics.com
+
+**(Preserve Hierarchy Addition)**
+Tech Skull Studios<br>
+[@TechSkullStudio](https://twitter.com/TechSkullStudio)<br>
+http://techskullstudios.com
