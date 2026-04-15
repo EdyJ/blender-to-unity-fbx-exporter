@@ -1,15 +1,14 @@
 bl_info = {
 	"name": "Unity FBX format",
-	"author": "Angel 'Edy' Garcia (@VehiclePhysics)",
-	"version": (1, 4, 1),
-	"blender": (3, 0, 0),
+	"author": "@VehiclePhysics, updated by stann.co",
+	"version": (1, 4, 5),
+	"blender": (5, 0, 0),
 	"location": "File > Export > Unity FBX",
 	"description": "FBX exporter compatible with Unity's coordinate and scaling system.",
 	"warning": "",
 	"wiki_url": "",
 	"category": "Import-Export",
 }
-
 
 import bpy
 import mathutils
@@ -150,7 +149,7 @@ def fix_object(ob):
 		fix_object(child)
 
 
-def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space, triangulate_faces):
+def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space, triangulate_faces, all_actions, bake_anim_force_startend_keying ):
 	global shared_data
 	global hidden_collections
 	global hidden_objects
@@ -222,7 +221,7 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 			ob.select_set(True)
 
 		# Export FBX file
-		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects, use_armature_deform_only=deform_bones, add_leaf_bones=leaf_bones, primary_bone_axis=primary_bone_axis, secondary_bone_axis=secondary_bone_axis, use_tspace=tangent_space, use_triangles=triangulate_faces)
+		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects, use_armature_deform_only=deform_bones, add_leaf_bones=leaf_bones, primary_bone_axis=primary_bone_axis, secondary_bone_axis=secondary_bone_axis, use_tspace=tangent_space, use_triangles=triangulate_faces, bake_anim_use_all_actions=all_actions, bake_anim_use_all_bones=False, bake_anim_force_startend_keying=bake_anim_force_startend_keying)
 
 		print("Invoking default FBX Exporter:", params)
 		bpy.ops.export_scene.fbx(**params)
@@ -276,7 +275,7 @@ class ExportUnityFbx(Operator, ExportHelper):
 	active_collection: BoolProperty(
 		name="Active Collection Only",
 		description="Export objects in the active collection only (and its children). May be combined with Selected Objects Only",
-		default=False,
+		default=True,
 	)
 
 	selected_objects: BoolProperty(
@@ -288,7 +287,7 @@ class ExportUnityFbx(Operator, ExportHelper):
 	deform_bones: BoolProperty(
 		name="Only Deform Bones",
 		description="Only write deforming bones (and non-deforming ones when they have deforming children)",
-		default=False,
+		default=True,
 	)
 
 	leaf_bones: BoolProperty(
@@ -333,6 +332,19 @@ class ExportUnityFbx(Operator, ExportHelper):
 		default=False,
 	)
 
+	all_actions: BoolProperty(
+		name="Export all actions",
+		description="if off, only nla actions get exported",
+		default=False,
+  )
+
+	bake_anim_force_startend_keying: BoolProperty(
+		name="Force Start/End keying",
+		description="Always add a keyframe at the start and end of actions for animated channels",
+		default=True,
+  )
+
+
 	# Custom draw method
 	# https://blender.stackexchange.com/questions/55437/add-gui-elements-to-exporter-window
 	# https://docs.blender.org/api/current/bpy.types.UILayout.html
@@ -342,6 +354,8 @@ class ExportUnityFbx(Operator, ExportHelper):
 		layout.row().label(text = "Selection")
 		layout.row().prop(self, "active_collection")
 		layout.row().prop(self, "selected_objects")
+
+		layout.row().prop(self, "all_actions")
 
 		layout.separator()
 		layout.row().label(text = "Meshes")
@@ -353,6 +367,11 @@ class ExportUnityFbx(Operator, ExportHelper):
 		layout.row().prop(self, "deform_bones")
 		layout.row().prop(self, "leaf_bones")
 
+		layout.separator()
+		layout.row().label(text = "Animation")
+		layout.row().prop(self, "bake_anim_force_startend_keying")
+
+		layout.separator()
 		layout.row().label(text = "Bone Axes")
 		split = layout.split(factor=0.4)
 		col = split.column()
@@ -366,7 +385,7 @@ class ExportUnityFbx(Operator, ExportHelper):
 		split.column().prop(self, "secondary_bone_axis", text="")
 
 	def execute(self, context):
-		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces)
+		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces, self.all_actions, self.bake_anim_force_startend_keying)
 
 
 # Only needed if you want to add into a dynamic menu

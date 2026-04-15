@@ -79,3 +79,6 @@ Requires Blender to be installed in the system, so:
 Angel "Edy" Garcia<br>
 [@VehiclePhysics](https://twitter.com/VehiclePhysics)<br>
 https://vehiclephysics.com
+
+Additional tweaks by
+STANN.co
