@@ -73,6 +73,7 @@ Requires Blender to be installed in the system, so:
 - Excluded collections (unchecked in the outliner). Won't be exported.
 - Nested collections.
 - Objects with their parent in a disabled/excluded collection.
+- Custom object properties.
 
 ## About the author
 
