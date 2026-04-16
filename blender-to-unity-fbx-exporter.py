@@ -12,6 +12,7 @@ bl_info = {
 
 
 import bpy
+import bmesh
 import mathutils
 import math
 
@@ -114,6 +115,29 @@ def apply_object_modifiers():
 		bpy.ops.object.convert(target='MESH')
 
 
+def triangulate_meshes():
+	for ob in bpy.data.objects:
+		if ob.type != 'MESH' or ob.name not in bpy.context.view_layer.objects:
+			continue
+
+		mesh = ob.data
+		bm = bmesh.new()
+		try:
+			bm.from_mesh(mesh)
+			bmesh.ops.triangulate(bm, faces=list(bm.faces))
+			bm.to_mesh(mesh)
+			mesh.update()
+		finally:
+			bm.free()
+
+
+def get_supported_fbx_export_params():
+	try:
+		return {prop.identifier for prop in bpy.ops.export_scene.fbx.get_rna_type().properties}
+	except Exception:
+		return set()
+
+
 def reset_parent_inverse(ob):
 	if (ob.parent):
 		mat_world = ob.matrix_world.copy()
@@ -150,7 +174,7 @@ def fix_object(ob):
 		fix_object(child)
 
 
-def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space, triangulate_faces, path_mode, embed_textures):
+def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space, triangulate_faces, embed_textures):
 	global shared_data
 	global hidden_collections
 	global hidden_objects
@@ -204,6 +228,12 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 		# Recompute the transforms out of the changed matrices
 		bpy.context.view_layer.update()
 
+		supported_params = get_supported_fbx_export_params()
+		use_native_triangulation = 'use_triangles' in supported_params
+		if triangulate_faces and not use_native_triangulation:
+			print("FBX exporter doesn't support 'use_triangles'; triangulating meshes before export.")
+			triangulate_meshes()
+
 		# Restore hidden and disabled objects
 		for ob in hidden_objects:
 			ob.hide_set(True)
@@ -233,10 +263,18 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 			primary_bone_axis=primary_bone_axis,
 			secondary_bone_axis=secondary_bone_axis,
 			use_tspace=tangent_space,
-			use_triangles=triangulate_faces,
-			path_mode=path_mode,
-			embed_textures=embed_textures and path_mode == 'COPY',
 		)
+		if use_native_triangulation:
+			params['use_triangles'] = triangulate_faces
+		if embed_textures:
+			params['path_mode'] = 'COPY'
+			params['embed_textures'] = True
+
+		if supported_params:
+			unsupported = sorted(set(params) - supported_params)
+			if unsupported:
+				print("Ignoring unsupported FBX exporter params:", unsupported)
+			params = {key: value for key, value in params.items() if key in supported_params}
 
 		print("Invoking default FBX Exporter:", params)
 		bpy.ops.export_scene.fbx(**params)
@@ -347,23 +385,9 @@ class ExportUnityFbx(Operator, ExportHelper):
 		default=False,
 	)
 
-	path_mode: EnumProperty(
-		name="Path Mode",
-		description="How external files like textures are referenced in the exported FBX",
-		items=(
-			('AUTO', "Auto", "Use relative paths with subdirectories only when needed"),
-			('ABSOLUTE', "Absolute", "Write absolute paths"),
-			('RELATIVE', "Relative", "Write paths relative to the exported FBX"),
-			('MATCH', "Match", "Try to keep the current path style"),
-			('STRIP', "Strip Path", "Only write the file names"),
-			('COPY', "Copy", "Copy images next to the exported FBX and enable texture embedding"),
-		),
-		default='AUTO',
-	)
-
 	embed_textures: BoolProperty(
 		name="Embed Textures",
-		description="Embed texture files inside the FBX. Requires Path Mode set to Copy",
+		description="Embed texture files inside the FBX",
 		default=False,
 	)
 
@@ -384,10 +408,7 @@ class ExportUnityFbx(Operator, ExportHelper):
 
 		layout.separator()
 		layout.row().label(text = "Files")
-		layout.row().prop(self, "path_mode")
-		row = layout.row()
-		row.enabled = self.path_mode == 'COPY'
-		row.prop(self, "embed_textures")
+		layout.row().prop(self, "embed_textures")
 
 		layout.separator()
 		layout.row().label(text = "Armatures")
@@ -407,7 +428,7 @@ class ExportUnityFbx(Operator, ExportHelper):
 		split.column().prop(self, "secondary_bone_axis", text="")
 
 	def execute(self, context):
-		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces, self.path_mode, self.embed_textures)
+		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces, self.embed_textures)
 
 
 # Only needed if you want to add into a dynamic menu

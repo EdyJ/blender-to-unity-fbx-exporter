@@ -29,7 +29,7 @@ The File Browser exposes selection, mesh, file and armature options:
 <img src="/img/blender-to-unity-fbx-exporter-options.png" alt="Blender To Unity FBX Exporter Options">
 </p>
 
-To export textures together with the model, set `Path Mode` to `Copy` and enable `Embed Textures`.
+To export textures together with the model, enable `Embed Textures`. This makes the exporter pass the correct FBX options to copy and embed image files automatically.
 
 ## How it works
 
