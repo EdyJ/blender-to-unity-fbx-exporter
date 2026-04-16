@@ -12,7 +12,6 @@ bl_info = {
 
 
 import bpy
-import bmesh
 import mathutils
 import math
 
@@ -115,29 +114,6 @@ def apply_object_modifiers():
 		bpy.ops.object.convert(target='MESH')
 
 
-def triangulate_meshes():
-	for ob in bpy.data.objects:
-		if ob.type != 'MESH' or ob.name not in bpy.context.view_layer.objects:
-			continue
-
-		mesh = ob.data
-		bm = bmesh.new()
-		try:
-			bm.from_mesh(mesh)
-			bmesh.ops.triangulate(bm, faces=list(bm.faces))
-			bm.to_mesh(mesh)
-			mesh.update()
-		finally:
-			bm.free()
-
-
-def get_supported_fbx_export_params():
-	try:
-		return {prop.identifier for prop in bpy.ops.export_scene.fbx.get_rna_type().properties}
-	except Exception:
-		return set()
-
-
 def reset_parent_inverse(ob):
 	if (ob.parent):
 		mat_world = ob.matrix_world.copy()
@@ -228,12 +204,6 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 		# Recompute the transforms out of the changed matrices
 		bpy.context.view_layer.update()
 
-		supported_params = get_supported_fbx_export_params()
-		use_native_triangulation = 'use_triangles' in supported_params
-		if triangulate_faces and not use_native_triangulation:
-			print("FBX exporter doesn't support 'use_triangles'; triangulating meshes before export.")
-			triangulate_meshes()
-
 		# Restore hidden and disabled objects
 		for ob in hidden_objects:
 			ob.hide_set(True)
@@ -252,29 +222,10 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 			ob.select_set(True)
 
 		# Export FBX file
-		params = dict(
-			filepath=filepath,
-			apply_scale_options='FBX_SCALE_UNITS',
-			object_types={'EMPTY', 'MESH', 'ARMATURE'},
-			use_active_collection=active_collection,
-			use_selection=selected_objects,
-			use_armature_deform_only=deform_bones,
-			add_leaf_bones=leaf_bones,
-			primary_bone_axis=primary_bone_axis,
-			secondary_bone_axis=secondary_bone_axis,
-			use_tspace=tangent_space,
-		)
-		if use_native_triangulation:
-			params['use_triangles'] = triangulate_faces
+		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects, use_armature_deform_only=deform_bones, add_leaf_bones=leaf_bones, primary_bone_axis=primary_bone_axis, secondary_bone_axis=secondary_bone_axis, use_tspace=tangent_space, use_triangles=triangulate_faces)
 		if embed_textures:
-			params['path_mode'] = 'COPY'
-			params['embed_textures'] = True
-
-		if supported_params:
-			unsupported = sorted(set(params) - supported_params)
-			if unsupported:
-				print("Ignoring unsupported FBX exporter params:", unsupported)
-			params = {key: value for key, value in params.items() if key in supported_params}
+			params["path_mode"] = 'COPY'
+			params["embed_textures"] = True
 
 		print("Invoking default FBX Exporter:", params)
 		bpy.ops.export_scene.fbx(**params)
