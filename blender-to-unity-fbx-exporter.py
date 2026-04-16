@@ -150,7 +150,7 @@ def fix_object(ob):
 		fix_object(child)
 
 
-def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space, triangulate_faces):
+def export_unity_fbx(context, filepath, active_collection, selected_objects, deform_bones, leaf_bones, primary_bone_axis, secondary_bone_axis, tangent_space, triangulate_faces, path_mode, embed_textures):
 	global shared_data
 	global hidden_collections
 	global hidden_objects
@@ -222,7 +222,21 @@ def export_unity_fbx(context, filepath, active_collection, selected_objects, def
 			ob.select_set(True)
 
 		# Export FBX file
-		params = dict(filepath=filepath, apply_scale_options='FBX_SCALE_UNITS', object_types={'EMPTY', 'MESH', 'ARMATURE'}, use_active_collection=active_collection, use_selection=selected_objects, use_armature_deform_only=deform_bones, add_leaf_bones=leaf_bones, primary_bone_axis=primary_bone_axis, secondary_bone_axis=secondary_bone_axis, use_tspace=tangent_space, use_triangles=triangulate_faces)
+		params = dict(
+			filepath=filepath,
+			apply_scale_options='FBX_SCALE_UNITS',
+			object_types={'EMPTY', 'MESH', 'ARMATURE'},
+			use_active_collection=active_collection,
+			use_selection=selected_objects,
+			use_armature_deform_only=deform_bones,
+			add_leaf_bones=leaf_bones,
+			primary_bone_axis=primary_bone_axis,
+			secondary_bone_axis=secondary_bone_axis,
+			use_tspace=tangent_space,
+			use_triangles=triangulate_faces,
+			path_mode=path_mode,
+			embed_textures=embed_textures and path_mode == 'COPY',
+		)
 
 		print("Invoking default FBX Exporter:", params)
 		bpy.ops.export_scene.fbx(**params)
@@ -333,6 +347,26 @@ class ExportUnityFbx(Operator, ExportHelper):
 		default=False,
 	)
 
+	path_mode: EnumProperty(
+		name="Path Mode",
+		description="How external files like textures are referenced in the exported FBX",
+		items=(
+			('AUTO', "Auto", "Use relative paths with subdirectories only when needed"),
+			('ABSOLUTE', "Absolute", "Write absolute paths"),
+			('RELATIVE', "Relative", "Write paths relative to the exported FBX"),
+			('MATCH', "Match", "Try to keep the current path style"),
+			('STRIP', "Strip Path", "Only write the file names"),
+			('COPY', "Copy", "Copy images next to the exported FBX and enable texture embedding"),
+		),
+		default='AUTO',
+	)
+
+	embed_textures: BoolProperty(
+		name="Embed Textures",
+		description="Embed texture files inside the FBX. Requires Path Mode set to Copy",
+		default=False,
+	)
+
 	# Custom draw method
 	# https://blender.stackexchange.com/questions/55437/add-gui-elements-to-exporter-window
 	# https://docs.blender.org/api/current/bpy.types.UILayout.html
@@ -347,6 +381,13 @@ class ExportUnityFbx(Operator, ExportHelper):
 		layout.row().label(text = "Meshes")
 		layout.row().prop(self, "tangent_space")
 		layout.row().prop(self, "triangulate_faces")
+
+		layout.separator()
+		layout.row().label(text = "Files")
+		layout.row().prop(self, "path_mode")
+		row = layout.row()
+		row.enabled = self.path_mode == 'COPY'
+		row.prop(self, "embed_textures")
 
 		layout.separator()
 		layout.row().label(text = "Armatures")
@@ -366,7 +407,7 @@ class ExportUnityFbx(Operator, ExportHelper):
 		split.column().prop(self, "secondary_bone_axis", text="")
 
 	def execute(self, context):
-		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces)
+		return export_unity_fbx(context, self.filepath, self.active_collection, self.selected_objects, self.deform_bones, self.leaf_bones, self.primary_bone_axis, self.secondary_bone_axis, self.tangent_space, self.triangulate_faces, self.path_mode, self.embed_textures)
 
 
 # Only needed if you want to add into a dynamic menu

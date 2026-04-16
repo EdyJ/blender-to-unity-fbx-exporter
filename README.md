@@ -23,11 +23,13 @@ Exports all Empty, Mesh and Armature objects in the current scene except those i
 <img src="/img/blender-to-unity-fbx-exporter-menu.png" alt="Blender To Unity FBX Exporter Menu">
 </p>
 
-The File Browser exposes selection and armature options:
+The File Browser exposes selection, mesh, file and armature options:
 
 <p align="center">
 <img src="/img/blender-to-unity-fbx-exporter-options.png" alt="Blender To Unity FBX Exporter Options">
 </p>
+
+To export textures together with the model, set `Path Mode` to `Copy` and enable `Embed Textures`.
 
 ## How it works
 
